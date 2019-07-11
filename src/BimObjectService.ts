@@ -19,8 +19,11 @@ export const BIM_OBJECT_VERSION_RELATION_TYPE: string = SPINAL_RELATION_LST_PTR_
 export class BimObjectService {
   public mappingModelIdBimFileId: { [modelId: number]: { bimFileId: string, version: number } } = {};
   public mappingBimFileIdModelId: { [bimFileId: string]: { modelId: number, version: number, model: Model } } = {};
+  private currentModel  : Model;
 
-
+  setCurrentModel(model : Model){
+    this.currentModel = model;
+  }
 
   createBIMObjectVersionContext(bimFileId: string) {
     SpinalGraphService.getChildren(bimFileId, [BIM_NODE_RELATION_NAME]).then(children => {
@@ -61,9 +64,10 @@ export class BimObjectService {
     })
   }
 
-  getBIMObject(dbId: number, model: Model) {
+  getBIMObject(dbId: number, model: Model = this.currentModel) {
     return new Promise(async (resolve, reject) => {
       try {
+
         const externalId = await BimObjectService.getExternalId(dbId, model);
         // @ts-ignore
         const modelMeta = this.mappingModelIdBimFileId[model.id];
@@ -83,7 +87,7 @@ export class BimObjectService {
     })
   }
 
-  createBIMObject(dbid: number, model: Model, name: string) {
+  createBIMObject(dbid: number, model: Model = this.currentModel, name: string) {
     return new Promise(async (resolve, reject) => {
       try {
         const externalId = await BimObjectService.getExternalId(dbid, model);
@@ -127,7 +131,7 @@ export class BimObjectService {
     })
   }
 
-  addBIMObject(contextId: string, parentId: string, dbId: number, model: Model, name: string) {
+  addBIMObject(contextId: string, parentId: string, dbId: number, model: Model = this.currentModel, name: string) {
     return this.getBIMObject(dbId, model).then(bimObject => {
       if (bimObject) {
         // @ts-ignore
@@ -145,27 +149,29 @@ export class BimObjectService {
     return SpinalGraphService.removeChild(parentId, bimObjectId, BIM_NODE_RELATION_NAME, BIM_NODE_RELATION_TYPE);
   }
 
-  deleteBImObject(dbId: number, model: Model) {
+  deleteBImObject(dbId: number, model: Model = this.currentModel) {
     return new Promise((resolve, reject) => {
       // @ts-ignore
       const modelMetaData = this.mappingModelIdBimFileId[model.id];
-      const externalId = BimObjectService.getExternalId(dbId, model);
 
       this.getBIMObject(dbId, model).then(bimObject => {
+        delete this.mappingModelIdBimFileId[model.id];
+        delete this.mappingBimFileIdModelId[modelMetaData.bimFileId];
         // @ts-ignore
-        return SpinalGraphService.getRealNode(bimObject.id).removeFromGraph();
+        return SpinalGraphService.removeFromGraph(bimObject.id);
+
       })
     })
   }
 
-  addReferenceObject(parentId: string, dbId: number, model: Model, name: string) {
+  addReferenceObject(parentId: string, dbId: number, model: Model = this.currentModel, name: string) {
     this.getBIMObject(dbId, model).then(child => {
       // @ts-ignore
       SpinalGraphService.addChild(parentId, child.id, REFERENCE_OBJECT_RELATION_NAME, REFERENCE_OBJECT_RELATION_TYPE)
     })
   }
 
-  removeReferenceObject(parentId: string, dbid: number, model: Model) {
+  removeReferenceObject(parentId: string, dbid: number, model: Model = this.currentModel) {
     this.getBIMObject(dbid, model).then((child) => {
       // @ts-ignore
       SpinalGraphService.removeChild(parentId, child.id, REFERENCE_OBJECT_RELATION_NAME, REFERENCE_OBJECT_RELATION_TYPE);
