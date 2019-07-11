@@ -4,7 +4,6 @@ import { SCENE_TYPE } from "./Constants";
 
 import { loadModelPtr } from "./utils";
 import { SceneHelper } from "./SceneHelper";
-
 export class SpinalForgeViewer {
 
   public currentSceneId: string;
@@ -14,10 +13,16 @@ export class SpinalForgeViewer {
   public viewerManager: any;
 
   initialize(viewerManager) {
+
+
     if (typeof this.initialized === "undefined")
       this.initialized = new Promise(resolve => {
         this.viewerManager = viewerManager;
-        this.viewerManager.viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT);
+        this.viewerManager.viewer.addEventListener(
+          Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
+          (obj)=> {
+            this.bimObjectService.setCurrentModel(obj.selections[0].model);
+          });
         resolve(true);
       });
 
@@ -76,17 +81,16 @@ export class SpinalForgeViewer {
           let option;
           for (let i = 0; i < options.length; i++) {
 
-            if (options[i].urn.get().includes(svfVersionFile.path) !== -1){
-              option = options[i]
+            if (options[i].urn.get().includes(svfVersionFile.path) !== -1) {
+              option = options[i];
               break;
             }
 
           }
           if (typeof option === "undefined")
             option = {};
-          else option = {ids: option.dbIds.get()}
-          console.log("resulte potion ", option)
-
+          else if (option.dbIds.get().length > 0)
+            option = {ids: option.dbIds.get()}
           const path = window.location.origin + svfVersionFile.path;
           this.viewerManager.loadModel(path, option)
             .then(model => {
@@ -108,7 +112,7 @@ export class SpinalForgeViewer {
         return SceneHelper.getBimFilesFromScene(nodeId)
           .then((children: any) => {
             const promises = [];
-            const option = typeof node.options !== "undefined" ? node.options : []
+            const option = typeof node.options !== "undefined" ? node.options : [];
             for (let i = 0; i < children.length; i++) {
               promises.push(this.loadBimFile(children[i], option));
             }
@@ -125,12 +129,11 @@ export class SpinalForgeViewer {
     }
   }
 
-  getModel(bimFileID: string){
+  getModel(bimFileID: string) {
     if (typeof this.bimObjectService.mappingBimFileIdModelId[bimFileID] !== "undefined")
       return this.bimObjectService.mappingBimFileIdModelId[bimFileID].model;
     return null;
   }
-
 
 
 }
