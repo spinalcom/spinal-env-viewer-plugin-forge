@@ -13,8 +13,6 @@ export class SpinalForgeViewer {
   public viewerManager: any;
 
   initialize(viewerManager) {
-
-
     if (typeof this.initialized === "undefined")
       this.initialized = new Promise(resolve => {
         this.viewerManager = viewerManager;
@@ -90,7 +88,7 @@ export class SpinalForgeViewer {
           if (typeof option === "undefined")
             option = {};
           else if (option.dbIds.get().length > 0)
-            option = {ids: option.dbIds.get()}
+            option = {ids: option.dbIds.get()};
           const path = window.location.origin + svfVersionFile.path;
           this.viewerManager.loadModel(path, option)
             .then(model => {

@@ -1,4 +1,3 @@
-
 import {
   SpinalGraphService,
   SPINAL_RELATION_LST_PTR_TYPE
@@ -19,12 +18,16 @@ export const BIM_OBJECT_VERSION_RELATION_TYPE: string = SPINAL_RELATION_LST_PTR_
 export class BimObjectService {
   public mappingModelIdBimFileId: { [modelId: number]: { bimFileId: string, version: number } } = {};
   public mappingBimFileIdModelId: { [bimFileId: string]: { modelId: number, version: number, model: Model } } = {};
-  private currentModel  : Model;
+  private currentModel: Model;
 
-  setCurrentModel(model : Model){
+  setCurrentModel(model: Model) {
     this.currentModel = model;
   }
 
+  /**
+   *
+   * @param bimFileId
+   */
   createBIMObjectVersionContext(bimFileId: string) {
     SpinalGraphService.getChildren(bimFileId, [BIM_NODE_RELATION_NAME]).then(children => {
       if (children.length > 0)
@@ -38,12 +41,16 @@ export class BimObjectService {
     })
   }
 
-  getBimFileContext(bimFileId: string) : any {
-    return SpinalGraphService.getChildren(bimFileId, [BIM_NODE_RELATION_NAME]).then(children => {
-      if (children.length > 0)
-        return children[0];
-      return undefined;
-    })
+  getBimFileContext(bimFileId: string): any {
+    return SpinalGraphService.getChildren(bimFileId, [BIM_NODE_RELATION_NAME])
+      .then(children => {
+        if (children.length > 0)
+          return children[0];
+
+        const context = SpinalGraphService.createNode({}, undefined);
+
+        SpinalGraphService.addChild(bimFileId, context,[BIM_NODE_RELATION_NAME], )
+      })
   }
 
   createBIMObjectVersion(bimFileId: string, version: number) {
@@ -224,13 +231,16 @@ export class BimObjectService {
     })
   }
 
-  addModel(bimFileId : string, model: Model, version: number){
+  addModel(bimFileId: string, model: Model, version: number) {
     // @ts-ignore
     this.mappingModelIdBimFileId[model.id] = {bimFileId, version};
     // @ts-ignore
-    this.mappingBimFileIdModelId[bimFileId] = {modelId: model.id, version, model}
+    this.mappingBimFileIdModelId[bimFileId] = {
+      modelId: model.id,
+      version,
+      model
+    }
   }
-
 
 
 }

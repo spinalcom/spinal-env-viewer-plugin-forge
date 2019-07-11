@@ -49,7 +49,9 @@ var SpinalForgeViewer = /** @class */ (function () {
         if (typeof this.initialized === "undefined")
             this.initialized = new Promise(function (resolve) {
                 _this.viewerManager = viewerManager;
-                _this.viewerManager.viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT);
+                _this.viewerManager.viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, function (obj) {
+                    _this.bimObjectService.setCurrentModel(obj.selections[0].model);
+                });
                 resolve(true);
             });
         return this.initialized;
@@ -109,9 +111,8 @@ var SpinalForgeViewer = /** @class */ (function () {
                 }
                 if (typeof option === "undefined")
                     option = {};
-                else
+                else if (option.dbIds.get().length > 0)
                     option = { ids: option.dbIds.get() };
-                console.log("resulte potion ", option);
                 var path = window.location.origin + svfVersionFile.path;
                 _this.viewerManager.loadModel(path, option)
                     .then(function (model) {
