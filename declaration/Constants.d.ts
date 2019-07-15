@@ -1,5 +1,13 @@
 export declare const SCENE_RELATION_NAME: string;
-export declare const SCENE_RELATION_TYPE: string;
 export declare const SCENE_TYPE: string;
 export declare const PART_RELATION_NAME: string;
+export declare const SCENE_RELATION_TYPE: string;
 export declare const PART_RELATION_TYPE: string;
+export declare const BIM_NODE_RELATION_NAME: string;
+export declare const BIM_OBJECT_RELATION_NAME: string;
+export declare const BIM_OBJECT_VERSION_RELATION_NAME: string;
+export declare const REFERENCE_OBJECT_RELATION_NAME: string;
+export declare const BIM_OBJECT_VERSION_RELATION_TYPE: string;
+export declare const BIM_NODE_RELATION_TYPE: string;
+export declare const BIM_OBJECT_RELATION_TYPE: string;
+export declare const REFERENCE_OBJECT_RELATION_TYPE: string;

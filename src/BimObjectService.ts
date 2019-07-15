@@ -1,19 +1,13 @@
-import {
-  SpinalGraphService,
-  SPINAL_RELATION_LST_PTR_TYPE
-} from "spinal-env-viewer-graph-service";
+import { SpinalGraphService } from "spinal-env-viewer-graph-service";
 import Model = Autodesk.Viewing.Model;
-
-
-export const BIM_NODE_RELATION_NAME: string = "hasBimNode";
-export const BIM_OBJECT_RELATION_NAME: string = "hasBimObject";
-
-export const BIM_OBJECT_VERSION_RELATION_NAME: string = "hasBimVersion";
-export const BIM_NODE_RELATION_TYPE: string = SPINAL_RELATION_LST_PTR_TYPE;
-export const BIM_OBJECT_RELATION_TYPE: string = SPINAL_RELATION_LST_PTR_TYPE;
-export const REFERENCE_OBJECT_RELATION_TYPE: string = SPINAL_RELATION_LST_PTR_TYPE;
-export const REFERENCE_OBJECT_RELATION_NAME: string = "hasReferenceObject";
-export const BIM_OBJECT_VERSION_RELATION_TYPE: string = SPINAL_RELATION_LST_PTR_TYPE;
+import {
+  BIM_NODE_RELATION_NAME,
+  BIM_NODE_RELATION_TYPE,
+  BIM_OBJECT_RELATION_NAME,
+  BIM_OBJECT_RELATION_TYPE,
+  BIM_OBJECT_VERSION_RELATION_NAME,
+  BIM_OBJECT_VERSION_RELATION_TYPE
+} from "./Constants";
 
 export class BimObjectService {
   public mappingModelIdBimFileId: { [modelId: number]: { bimFileId: string, version: number } } = {};
@@ -25,52 +19,109 @@ export class BimObjectService {
   }
 
   /**
-   *
    * @param bimFileId
+   * @return {Boolean} true if the version has been created false otherwise
    */
   createBIMObjectVersionContext(bimFileId: string) {
-    SpinalGraphService.getChildren(bimFileId, [BIM_NODE_RELATION_NAME]).then(children => {
-      if (children.length > 0)
-        return children[0];
-
-      const nodeId = SpinalGraphService.createNode({
-        name: "BIMObjectContext",
-        currentVersion: 0
-      }, undefined);
-      SpinalGraphService.addChild(bimFileId, nodeId, BIM_NODE_RELATION_NAME, BIM_NODE_RELATION_TYPE);
-    })
-  }
-
-  getBimFileContext(bimFileId: string): any {
-    return SpinalGraphService.getChildren(bimFileId, [BIM_NODE_RELATION_NAME])
-      .then(children => {
-        if (children.length > 0)
-          return children[0];
-
-        const context = SpinalGraphService.createNode({}, undefined);
-
-        SpinalGraphService.addChild(bimFileId, context,[BIM_NODE_RELATION_NAME], )
-      })
-  }
-
-  createBIMObjectVersion(bimFileId: string, version: number) {
-    this.getBimFileContext(bimFileId).then(context => {
-      const nodeId = SpinalGraphService.createNode({version}, undefined);
-      SpinalGraphService.addChild(context.id, nodeId, BIM_OBJECT_VERSION_RELATION_NAME, BIM_OBJECT_VERSION_RELATION_TYPE);
-    })
-  }
-
-  getBIMObjectVersion(bimFileId: string, version: number) {
-    return this.getBimFileContext(bimFileId).then(context => {
-      SpinalGraphService.getChildren(context.id, [BIM_OBJECT_VERSION_RELATION_NAME])
+    return new Promise((resolve, reject) => {
+      SpinalGraphService.getChildren(bimFileId, [BIM_NODE_RELATION_NAME])
         .then(children => {
-          return children.find((node) => {
-            return node.version === version
-          });
+          if (children.length > 0)
+            resolve(false);
+
+          const nodeId = SpinalGraphService.createNode({
+            name: "BIMObjectContext",
+            currentVersion: 0
+          }, undefined);
+
+          return SpinalGraphService
+            .addChild(bimFileId, nodeId, BIM_NODE_RELATION_NAME, BIM_NODE_RELATION_TYPE)
+            .then(() => {
+              resolve(true);
+            })
         })
     })
   }
 
+  /**
+   * Return the node where to attach BIMObject
+   * @param bimFileId {String} id of the BIMFile
+   */
+  getBimFileContext(bimFileId: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      SpinalGraphService
+        .getChildren(bimFileId, [BIM_NODE_RELATION_NAME])
+        .then(children => {
+          if (children.length > 0)
+            resolve(children);
+          const context = SpinalGraphService.createNode({}, undefined);
+          SpinalGraphService
+            .addChild(bimFileId, context, BIM_NODE_RELATION_NAME, BIM_NODE_RELATION_TYPE)
+            .then(node => {
+              SpinalGraphService
+                .getChildren(bimFileId, [BIM_NODE_RELATION_NAME])
+                .then(resolve)
+                .catch(reject)
+            })
+            .catch(reject)
+        })
+        .catch(reject);
+    })
+  }
+
+  /**
+   * Add a version to the context
+   * @param bimFileId {String} id of the BIMFile
+   * @param version {number} version of the bimFile
+   */
+  createBIMObjectVersion(bimFileId: string, version: number): any {
+    return new Promise((resolve, reject) => {
+      this.getBimFileContext(bimFileId)
+        .then(context => {
+          const nodeId = SpinalGraphService.createNode({version}, undefined);
+          SpinalGraphService
+            .addChild(context.id, nodeId, BIM_OBJECT_VERSION_RELATION_NAME, BIM_OBJECT_VERSION_RELATION_TYPE)
+            .then(res => {
+              resolve(SpinalGraphService.getNode(nodeId))
+            })
+            .catch(reject);
+        })
+        .catch(reject);
+    })
+
+  }
+
+  /**
+   * Return the node where is attach every node from version
+   * @param bimFileId {String} id of the BIMFile
+   * @param version {number} version of the bimFile
+   */
+  getBIMObjectVersion(bimFileId: string, version: number) {
+    return new Promise((resolve, reject) => {
+      this.getBimFileContext(bimFileId)
+        .then(context => {
+          SpinalGraphService
+            .getChildren(context.id, [BIM_OBJECT_VERSION_RELATION_NAME])
+            .then(children => {
+              const child = children.find((node) => {
+                return node.version === version
+              });
+              if (typeof child === "undefined")
+                resolve(this.createBIMObjectVersion(bimFileId, version));
+              else
+                resolve(child);
+            })
+            .catch(reject)
+        })
+        .catch(reject)
+    });
+  }
+
+  /**
+   * Return the BIMObject corresponding dbid and the model
+   * @param dbId {number}
+   * @param model {Model}
+   */
   getBIMObject(dbId: number, model: Model = this.currentModel) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -81,11 +132,14 @@ export class BimObjectService {
         this.getBIMObjectVersion(modelMeta.bimFileId, modelMeta.version)
           .then(node => {
             // @ts-ignore
-            SpinalGraphService.getChildren(node.id, [BIM_OBJECT_RELATION_NAME]).then(children => {
-              resolve(children.find((node) => {
-                return node.externalId === externalId
-              }));
-            })
+            SpinalGraphService.getChildren(node.id, [BIM_OBJECT_RELATION_NAME])
+              .then(children => {
+                const child = children.find((node) => {
+                  return node.externalId === externalId
+                });
+
+                resolve(child);
+              })
           })
 
       } catch (e) {
@@ -94,9 +148,20 @@ export class BimObjectService {
     })
   }
 
+  /**
+   * create a BIMObject for the corresponding dbid and model
+   * @param dbid {number}
+   * @param model {Model}
+   * @param name {string} name of the bimObject
+   * @returns {boolean} true if the BIMObject has been created false otherwise
+   */
   createBIMObject(dbid: number, model: Model = this.currentModel, name: string) {
     return new Promise(async (resolve, reject) => {
       try {
+        const bimObject = await this.getBIMObject(dbid, model);
+        if (typeof bimObject !== "undefined")
+          resolve(false);
+
         const externalId = await BimObjectService.getExternalId(dbid, model);
         // @ts-ignore
         const modelMeta = this.mappingModelIdBimFileId[model.id];
@@ -110,16 +175,27 @@ export class BimObjectService {
         }, undefined);
         // @ts-ignore
 
-        this.getBIMObjectVersion(modelMeta.bimFileId, modelMeta.version).then(node => {
-          // @ts-ignore
-          SpinalGraphService.addChild(node.id, nodeId, BIM_OBJECT_RELATION_NAME, BIM_OBJECT_RELATION_TYPE).then(resolve)
-        })
+        this.getBIMObjectVersion(modelMeta.bimFileId, modelMeta.version)
+          .then(node => {
+            SpinalGraphService
+            // @ts-ignore
+              .addChild(node.id, nodeId, BIM_OBJECT_RELATION_NAME, BIM_OBJECT_RELATION_TYPE)
+              .then(() => {
+                resolve(true);
+              })
+          })
       } catch (e) {
         reject(e);
       }
     })
   }
 
+  /**
+   * Return the external id for the given dbid
+   * @param dbId {number}
+   * @param model {Model}
+   * @returns {string} external id for the given dbid
+   */
   static getExternalId(dbId: number, model: Model) {
     return new Promise((resolve, reject) => {
       model.getProperties(dbId, (props) => {
@@ -128,6 +204,12 @@ export class BimObjectService {
     })
   }
 
+  /**
+   * Return the dbid corresponding to the external id
+   * @param externalId
+   * @param bimFileId {String} id of the BIMFile
+   * @returns {number} dbid of the given external id
+   */
   getDbIdFromExternalId(externalId: string, bimFileId: string) {
     return new Promise((resolve, reject) => {
       const modelMeta = this.mappingBimFileIdModelId[bimFileId];
@@ -138,69 +220,126 @@ export class BimObjectService {
     })
   }
 
-  addBIMObject(contextId: string, parentId: string, dbId: number, model: Model = this.currentModel, name: string) {
-    return this.getBIMObject(dbId, model).then(bimObject => {
-      if (bimObject) {
-        // @ts-ignore
-        return SpinalGraphService.addChildInContext(parentId, bimObject.id, contextId, BIM_OBJECT_RELATION_NAME, BIM_NODE_RELATION_TYPE)
-      }
 
-      this.createBIMObject(dbId, model, name).then(child => {
-        // @ts-ignore
-        return SpinalGraphService.addChildInContext(parentId, child.getId(), contextId, BIM_OBJECT_RELATION_NAME, BIM_NODE_RELATION_TYPE)
+  /**
+   * Add a BIMObject to a node
+   * @param contextId  {string} context id where the BIMObject supposed to be
+   * @param parentId {string} id of the node where the BIMObject will be add
+   * @param dbId {number}
+   * @param model {Model}
+   * @param name {string}
+   */
+  addBIMObject(contextId: string, parentId: string, dbId: number, model: Model = this.currentModel, name: string) {
+    return this.getBIMObject(dbId, model)
+      .then(bimObject => {
+        if (bimObject) {
+
+          return SpinalGraphService
+          // @ts-ignore
+            .addChildInContext(parentId, bimObject.id, contextId, BIM_OBJECT_RELATION_NAME, BIM_NODE_RELATION_TYPE)
+        }
+
+        return this.createBIMObject(dbId, model, name)
+          .then(child => {
+            // @ts-ignore
+            return SpinalGraphService
+            // @ts-ignore
+              .addChildInContext(parentId, child.getId(), contextId, BIM_OBJECT_RELATION_NAME, BIM_NODE_RELATION_TYPE)
+          })
       })
-    })
   }
 
+  /**
+   * Remove a BIMObject from a parent
+   * @param parentId
+   * @param bimObjectId
+   */
   removeBIMObject(parentId: string, bimObjectId: string) {
+    // @ts-ignore
     return SpinalGraphService.removeChild(parentId, bimObjectId, BIM_NODE_RELATION_NAME, BIM_NODE_RELATION_TYPE);
   }
 
+  /**
+   * Delete a BIMObject from graph
+   * @param dbId {number}
+   * @param model {Model}
+   */
   deleteBImObject(dbId: number, model: Model = this.currentModel) {
     return new Promise((resolve, reject) => {
       // @ts-ignore
       const modelMetaData = this.mappingModelIdBimFileId[model.id];
 
-      this.getBIMObject(dbId, model).then(bimObject => {
-        delete this.mappingModelIdBimFileId[model.id];
-        delete this.mappingBimFileIdModelId[modelMetaData.bimFileId];
-        // @ts-ignore
-        return SpinalGraphService.removeFromGraph(bimObject.id);
+      this.getBIMObject(dbId, model)
+        .then(bimObject => {
+          // @ts-ignore
+          delete this.mappingModelIdBimFileId[model.id];
+          delete this.mappingBimFileIdModelId[modelMetaData.bimFileId];
+          // @ts-ignore
+          resolve(SpinalGraphService.removeFromGraph(bimObject.id));
 
-      })
+        }).catch(reject)
     })
   }
 
+  /**
+   * Add a reference object to a node
+   *
+   * @param parentId {string}
+   * @param dbId {Number}
+   * @param model {Model}
+   * @param name {string}
+   */
   addReferenceObject(parentId: string, dbId: number, model: Model = this.currentModel, name: string) {
-    this.getBIMObject(dbId, model).then(child => {
-      // @ts-ignore
-      SpinalGraphService.addChild(parentId, child.id, REFERENCE_OBJECT_RELATION_NAME, REFERENCE_OBJECT_RELATION_TYPE)
-    })
+    this.getBIMObject(dbId, model)
+      .then(child => {
+        // @ts-ignore
+        SpinalGraphService.addChild(parentId, child.id, REFERENCE_OBJECT_RELATION_NAME, REFERENCE_OBJECT_RELATION_TYPE)
+      })
   }
 
+  /**
+   *
+   * @param parentId
+   * @param dbid
+   * @param model
+   */
   removeReferenceObject(parentId: string, dbid: number, model: Model = this.currentModel) {
-    this.getBIMObject(dbid, model).then((child) => {
-      // @ts-ignore
-      SpinalGraphService.removeChild(parentId, child.id, REFERENCE_OBJECT_RELATION_NAME, REFERENCE_OBJECT_RELATION_TYPE);
-    })
+    this.getBIMObject(dbid, model)
+      .then((child) => {
+        // @ts-ignore
+        SpinalGraphService.removeChild(parentId, child.id, REFERENCE_OBJECT_RELATION_NAME, REFERENCE_OBJECT_RELATION_TYPE);
+      })
 
   }
 
+  /**
+   *
+   * @param bimFileId
+   * @param version
+   */
   getAllExternalIdForVersion(bimFileId: string, version: number) {
     return new Promise(resolve => {
 
-      this.getBIMObjectVersion(bimFileId, version).then(child => {
-        // @ts-ignore
-        SpinalGraphService.getChildren(child.id, [BIM_OBJECT_RELATION_NAME])
-          .then(children => {
-            resolve(children.map(children => {
-              return children.externalId
-            }));
-          })
-      })
+      this.getBIMObjectVersion(bimFileId, version)
+        .then(child => {
+          // @ts-ignore
+          SpinalGraphService
+          // @ts-ignore
+            .getChildren(child.id, [BIM_OBJECT_RELATION_NAME])
+            .then(children => {
+              resolve(children.map(children => {
+                return children.externalId
+              }));
+            })
+        })
     })
   }
 
+  /**
+   * @param version1
+   * @param version2
+   * @param bimFileId
+   */
   getDifferenceExternalIdForVersion(version1: number, version2: number, bimFileId: string) {
     const promise = [];
     promise.push(this.getAllExternalIdForVersion(bimFileId, version1));
@@ -231,11 +370,20 @@ export class BimObjectService {
     })
   }
 
+  /**
+   * notify the service that a new model has been load into the viewer
+   * @param bimFileId {String} id of the BIMFile
+   * @param version {number} version of the bimFile
+   * @param model {Model} model loaded into the viewer
+
+   */
   addModel(bimFileId: string, model: Model, version: number) {
     // @ts-ignore
     this.mappingModelIdBimFileId[model.id] = {bimFileId, version};
-    // @ts-ignore
+
+
     this.mappingBimFileIdModelId[bimFileId] = {
+      // @ts-ignore
       modelId: model.id,
       version,
       model

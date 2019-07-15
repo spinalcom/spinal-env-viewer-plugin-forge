@@ -2,7 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 exports.SCENE_RELATION_NAME = 'hasScene';
-exports.SCENE_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_RELATION_LST_PTR_TYPE;
 exports.SCENE_TYPE = "scene";
 exports.PART_RELATION_NAME = 'hasParts';
+exports.SCENE_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_RELATION_LST_PTR_TYPE;
 exports.PART_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_RELATION_LST_PTR_TYPE;
+exports.BIM_NODE_RELATION_NAME = "hasBimNode";
+exports.BIM_OBJECT_RELATION_NAME = "hasBimObject";
+exports.BIM_OBJECT_VERSION_RELATION_NAME = "hasBimVersion";
+exports.REFERENCE_OBJECT_RELATION_NAME = "hasReferenceObject";
+exports.BIM_OBJECT_VERSION_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_RELATION_LST_PTR_TYPE;
+exports.BIM_NODE_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_RELATION_LST_PTR_TYPE;
+exports.BIM_OBJECT_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_RELATION_LST_PTR_TYPE;
+exports.REFERENCE_OBJECT_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_RELATION_LST_PTR_TYPE;
