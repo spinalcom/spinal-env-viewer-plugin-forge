@@ -49,8 +49,12 @@ var SpinalForgeViewer = /** @class */ (function () {
         if (typeof this.initialized === "undefined")
             this.initialized = new Promise(function (resolve) {
                 _this.viewerManager = viewerManager;
-                _this.viewerManager.viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, function (obj) {
-                    _this.bimObjectService.setCurrentModel(obj.selections[0].model);
+                _this.viewerManager.viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, function (event) {
+                    console.log(event);
+                    if (typeof event.selections !== "undefined" && event.selections.length > 0) {
+                        _this.viewerManager.setCurrentModel(event.selections[0].model);
+                        _this.bimObjectService.setCurrentModel(event.selections[0].model);
+                    }
                 });
                 resolve(true);
             });
@@ -149,7 +153,8 @@ var SpinalForgeViewer = /** @class */ (function () {
                         else
                             return [2 /*return*/, SceneHelper_1.SceneHelper.getSceneFromNode(nodeId)
                                     .then(function (scene) {
-                                    return _this.loadModelFromNode(scene.id);
+                                    if (typeof scene !== "undefined")
+                                        return _this.loadModelFromNode(scene.id);
                                 })];
                         return [3 /*break*/, 3];
                     case 2:

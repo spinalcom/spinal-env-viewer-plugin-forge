@@ -46,97 +46,28 @@ var BimObjectService = /** @class */ (function () {
         this.currentModel = model;
     };
     /**
-     * @param bimFileId
-     * @return {Boolean} true if the version has been created false otherwise
-     */
-    BimObjectService.prototype.createBIMObjectVersionContext = function (bimFileId) {
-        return new Promise(function (resolve, reject) {
-            spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(bimFileId, [Constants_1.BIM_NODE_RELATION_NAME])
-                .then(function (children) {
-                if (children.length > 0)
-                    resolve(false);
-                var nodeId = spinal_env_viewer_graph_service_1.SpinalGraphService.createNode({
-                    name: "BIMObjectContext",
-                    currentVersion: 0
-                }, undefined);
-                return spinal_env_viewer_graph_service_1.SpinalGraphService
-                    .addChild(bimFileId, nodeId, Constants_1.BIM_NODE_RELATION_NAME, Constants_1.BIM_NODE_RELATION_TYPE)
-                    .then(function () {
-                    resolve(true);
-                });
-            });
-        });
-    };
-    /**
      * Return the node where to attach BIMObject
      * @param bimFileId {String} id of the BIMFile
      */
     BimObjectService.prototype.getBimFileContext = function (bimFileId) {
         return new Promise(function (resolve, reject) {
             spinal_env_viewer_graph_service_1.SpinalGraphService
-                .getChildren(bimFileId, [Constants_1.BIM_NODE_RELATION_NAME])
+                .getChildren(bimFileId, [Constants_1.BIM_CONTEXT_RELATION_NAME])
                 .then(function (children) {
                 if (children.length > 0)
-                    resolve(children);
-                var context = spinal_env_viewer_graph_service_1.SpinalGraphService.createNode({}, undefined);
-                spinal_env_viewer_graph_service_1.SpinalGraphService
-                    .addChild(bimFileId, context, Constants_1.BIM_NODE_RELATION_NAME, Constants_1.BIM_NODE_RELATION_TYPE)
-                    .then(function (node) {
-                    spinal_env_viewer_graph_service_1.SpinalGraphService
-                        .getChildren(bimFileId, [Constants_1.BIM_NODE_RELATION_NAME])
-                        .then(resolve)
-                        .catch(reject);
-                })
-                    .catch(reject);
+                    resolve(children[0]);
+                else
+                    resolve(undefined);
             })
                 .catch(reject);
         });
     };
-    /**
-     * Add a version to the context
-     * @param bimFileId {String} id of the BIMFile
-     * @param version {number} version of the bimFile
-     */
-    BimObjectService.prototype.createBIMObjectVersion = function (bimFileId, version) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            _this.getBimFileContext(bimFileId)
-                .then(function (context) {
-                var nodeId = spinal_env_viewer_graph_service_1.SpinalGraphService.createNode({ version: version }, undefined);
-                spinal_env_viewer_graph_service_1.SpinalGraphService
-                    .addChild(context.id, nodeId, Constants_1.BIM_OBJECT_VERSION_RELATION_NAME, Constants_1.BIM_OBJECT_VERSION_RELATION_TYPE)
-                    .then(function (res) {
-                    resolve(spinal_env_viewer_graph_service_1.SpinalGraphService.getNode(nodeId));
-                })
-                    .catch(reject);
-            })
-                .catch(reject);
-        });
-    };
-    /**
-     * Return the node where is attach every node from version
-     * @param bimFileId {String} id of the BIMFile
-     * @param version {number} version of the bimFile
-     */
-    BimObjectService.prototype.getBIMObjectVersion = function (bimFileId, version) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            _this.getBimFileContext(bimFileId)
-                .then(function (context) {
-                spinal_env_viewer_graph_service_1.SpinalGraphService
-                    .getChildren(context.id, [Constants_1.BIM_OBJECT_VERSION_RELATION_NAME])
-                    .then(function (children) {
-                    var child = children.find(function (node) {
-                        return node.version === version;
-                    });
-                    if (typeof child === "undefined")
-                        resolve(_this.createBIMObjectVersion(bimFileId, version));
-                    else
-                        resolve(child);
-                })
-                    .catch(reject);
-            })
-                .catch(reject);
+    BimObjectService.prototype.createBIMFileContext = function (bimFileId) {
+        return new Promise(function (resolve) {
+            var contextId = spinal_env_viewer_graph_service_1.SpinalGraphService.createNode({ name: "BIMContext" }, undefined);
+            spinal_env_viewer_graph_service_1.SpinalGraphService
+                .addChild(bimFileId, contextId, Constants_1.BIM_CONTEXT_RELATION_NAME, Constants_1.BIM_CONTEXT_RELATION_TYPE)
+                .then(resolve);
         });
     };
     /**
@@ -157,16 +88,18 @@ var BimObjectService = /** @class */ (function () {
                     case 1:
                         externalId_1 = _a.sent();
                         modelMeta = this.mappingModelIdBimFileId[model.id];
-                        this.getBIMObjectVersion(modelMeta.bimFileId, modelMeta.version)
+                        this.getBimFileContext(modelMeta.bimFileId)
                             .then(function (node) {
-                            // @ts-ignore
-                            spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(node.id, [Constants_1.BIM_OBJECT_RELATION_NAME])
-                                .then(function (children) {
-                                var child = children.find(function (node) {
-                                    return node.externalId === externalId_1;
+                            if (typeof node !== "undefined")
+                                spinal_env_viewer_graph_service_1.SpinalGraphService.getChildren(node.id, [Constants_1.BIM_OBJECT_RELATION_NAME])
+                                    .then(function (children) {
+                                    var child = children.find(function (node) {
+                                        return node.externalId.get() === externalId_1;
+                                    });
+                                    resolve(child);
                                 });
-                                resolve(child);
-                            });
+                            else
+                                resolve(undefined);
                         });
                         return [3 /*break*/, 3];
                     case 2:
@@ -185,11 +118,12 @@ var BimObjectService = /** @class */ (function () {
      * @param name {string} name of the bimObject
      * @returns {boolean} true if the BIMObject has been created false otherwise
      */
-    BimObjectService.prototype.createBIMObject = function (dbid, model, name) {
+    BimObjectService.prototype.createBIMObject = function (dbid, name, model) {
         var _this = this;
         if (model === void 0) { model = this.currentModel; }
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var bimObject, externalId, modelMeta, nodeId_1, e_2;
+            var bimObject, externalId, modelMeta_1, bimId_1, e_2;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -202,24 +136,30 @@ var BimObjectService = /** @class */ (function () {
                         return [4 /*yield*/, BimObjectService.getExternalId(dbid, model)];
                     case 2:
                         externalId = _a.sent();
-                        modelMeta = this.mappingModelIdBimFileId[model.id];
-                        nodeId_1 = spinal_env_viewer_graph_service_1.SpinalGraphService.createNode({
-                            type: 'BIMObject',
-                            bimFileId: modelMeta.bimFileId,
-                            version: modelMeta.version,
+                        modelMeta_1 = this.mappingModelIdBimFileId[model.id];
+                        bimId_1 = spinal_env_viewer_graph_service_1.SpinalGraphService.createNode({
+                            type: Constants_1.BIM_OBJECT_TYPE,
+                            bimFileId: modelMeta_1.bimFileId,
+                            version: modelMeta_1.version,
                             externalId: externalId,
                             dbid: dbid,
                             name: name
                         }, undefined);
                         // @ts-ignore
-                        this.getBIMObjectVersion(modelMeta.bimFileId, modelMeta.version)
+                        this.getBimFileContext(modelMeta_1.bimFileId)
                             .then(function (node) {
-                            spinal_env_viewer_graph_service_1.SpinalGraphService
-                                // @ts-ignore
-                                .addChild(node.id, nodeId_1, Constants_1.BIM_OBJECT_RELATION_NAME, Constants_1.BIM_OBJECT_RELATION_TYPE)
-                                .then(function () {
-                                resolve(true);
-                            });
+                            if (typeof node !== "undefined") {
+                                spinal_env_viewer_graph_service_1.SpinalGraphService
+                                    .addChild(node.id, bimId_1, Constants_1.BIM_OBJECT_RELATION_NAME, Constants_1.BIM_OBJECT_RELATION_TYPE)
+                                    .then(resolve);
+                            }
+                            else {
+                                _this.createBIMFileContext(modelMeta_1.bimFileId)
+                                    .then(function () {
+                                    _this.createBIMObject(dbid, name, model)
+                                        .then(resolve);
+                                });
+                            }
                         });
                         return [3 /*break*/, 4];
                     case 3:
@@ -347,6 +287,83 @@ var BimObjectService = /** @class */ (function () {
             spinal_env_viewer_graph_service_1.SpinalGraphService.removeChild(parentId, child.id, REFERENCE_OBJECT_RELATION_NAME, REFERENCE_OBJECT_RELATION_TYPE);
         });
     };
+    /*
+    /!**
+     * @param bimFileId
+     * @return {Boolean} true if the version has been created false otherwise
+     *!/
+    createBIMObjectVersionContext(bimFileId: string) {
+      return new Promise((resolve) => {
+        this.getBimFileContext(bimFileId)
+          .then(children => {
+            if (typeof children === "undefined")
+              resolve(false);
+  
+            const nodeId = SpinalGraphService.createNode({
+              name: "BIMObjectContext",
+              currentVersion: 0
+            }, undefined);
+  
+            return SpinalGraphService
+              .addChild(bimFileId, nodeId, BIM_NODE_RELATION_NAME, BIM_NODE_RELATION_TYPE)
+              .then(() => {
+                resolve(true);
+              })
+          })
+      })
+    }
+    /!**
+     * Add a version to the context
+     * @param bimFileId {String} id of the BIMFile
+     * @param version {number} version of the bimFile
+     *!/
+    createBIMObjectVersion(bimFileId: string, version: number): any {
+      return new Promise((resolve, reject) => {
+        this.getBimFileContext(bimFileId)
+          .then(context => {
+            const nodeId = SpinalGraphService.createNode({version}, undefined);
+            SpinalGraphService
+              .addChild(context.id, nodeId, BIM_OBJECT_VERSION_RELATION_NAME, BIM_OBJECT_VERSION_RELATION_TYPE)
+              .then(res => {
+                SpinalGraphService.getNodeAsync(nodeId).then(resolve);
+  
+              })
+              .catch(reject);
+          })
+          .catch(reject);
+      })
+  
+    }
+  
+    /!**
+     * Return the node where is attach every node from version
+     * @param bimFileId {String} id of the BIMFile
+     * @param version {number} version of the bimFile
+     *!/
+    getBIMObjectVersion(bimFileId: string, version: number) {
+      return new Promise((resolve, reject) => {
+        this.getBimFileContext(bimFileId)
+          .then(context => {
+            console.log("10", context);
+            SpinalGraphService
+              .getChildren(context.id, [BIM_OBJECT_VERSION_RELATION_NAME])
+              .then(children => {
+                const child = children.find((node) => {
+                  return node.version === version
+                });
+                if (typeof child === "undefined")
+                  resolve(this.createBIMObjectVersion(bimFileId, version));
+                else
+                  resolve(child);
+              })
+              .catch((e) => {
+                reject(e);
+              })
+          })
+          .catch(reject)
+      });
+    }
+  */
     /**
      *
      * @param bimFileId

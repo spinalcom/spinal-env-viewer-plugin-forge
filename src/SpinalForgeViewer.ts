@@ -4,6 +4,8 @@ import { SCENE_TYPE } from "./Constants";
 
 import { loadModelPtr } from "./utils";
 import { SceneHelper } from "./SceneHelper";
+import { type } from "os";
+
 export class SpinalForgeViewer {
 
   public currentSceneId: string;
@@ -18,8 +20,14 @@ export class SpinalForgeViewer {
         this.viewerManager = viewerManager;
         this.viewerManager.viewer.addEventListener(
           Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
-          (obj)=> {
-            this.bimObjectService.setCurrentModel(obj.selections[0].model);
+          (event) => {
+            console.log(event);
+            if (typeof event.selections !== "undefined" && event.selections.length > 0){
+              this.viewerManager.setCurrentModel(event.selections[0].model);
+              this.bimObjectService.setCurrentModel(event.selections[0].model);
+
+            }
+
           });
         resolve(true);
       });
@@ -120,7 +128,8 @@ export class SpinalForgeViewer {
       } else
         return SceneHelper.getSceneFromNode(nodeId)
           .then((scene: { id: string }) => {
-            return this.loadModelFromNode(scene.id)
+            if (typeof scene !== "undefined")
+              return this.loadModelFromNode(scene.id)
           })
     } catch (e) {
       console.error(e);
