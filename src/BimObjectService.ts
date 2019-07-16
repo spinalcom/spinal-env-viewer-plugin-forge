@@ -13,10 +13,16 @@ import {
 } from "./Constants";
 import { type } from "os";
 
+
+interface modelScene {
+  model: Model,
+  scene: any
+}
+
 export class BimObjectService {
 
-  public mappingModelIdBimFileId: { [modelId: number]: { bimFileId: string, version: number } } = {};
-  public mappingBimFileIdModelId: { [bimFileId: string]: { modelId: number, version: number, model: Model } } = {};
+  public mappingModelIdBimFileId: { [modelId: number]: { bimFileId: string, version: number, scene: any } } = {};
+  public mappingBimFileIdModelId: { [bimFileId: string]: { modelId: number, version: number, modelScene: { model: Model, scene: any }[] } } = {};
   private currentModel: Model;
 
   setCurrentModel(model: Model) {
@@ -106,6 +112,7 @@ export class BimObjectService {
    * @returns {boolean} true if the BIMObject has been created false otherwise
    */
   createBIMObject(dbid: number, name: string, model: Model = this.currentModel) {
+    console.log("createBimFiole")
     return new Promise(async (resolve, reject) => {
       try {
         const bimObject = await this.getBIMObject(dbid, model);
@@ -130,8 +137,7 @@ export class BimObjectService {
               SpinalGraphService
                 .addChild(node.id, bimId, BIM_OBJECT_RELATION_NAME, BIM_OBJECT_RELATION_TYPE)
                 .then(resolve)
-            }
-            else {
+            } else {
               this.createBIMFileContext(modelMeta.bimFileId)
                 .then(() => {
                   this.createBIMObject(dbid, name, model)
@@ -139,7 +145,7 @@ export class BimObjectService {
                 })
             }
           })
-        /*    this.getBIMObjectVersion(modelMeta.bimFileId, modelMeta.version)
+        /*     this.getBIMObjectVersion(modelMeta.bimFileId, modelMeta.version)
               .then(node => {
                 SpinalGraphService
                 // @ts-ignore
@@ -147,7 +153,8 @@ export class BimObjectService {
                   .then(() => {
                     resolve(true);
                   })
-              })*/
+              })
+              */
       } catch (e) {
         reject(e);
       }
@@ -177,7 +184,7 @@ export class BimObjectService {
   getDbIdFromExternalId(externalId: string, bimFileId: string) {
     return new Promise((resolve, reject) => {
       const modelMeta = this.mappingBimFileIdModelId[bimFileId];
-      const model = modelMeta.model;
+      const model = modelMeta.modelScene[0].model;
       model.getExternalIdMapping(res => {
         resolve(res[externalId]);
       }, reject);
@@ -195,6 +202,7 @@ export class BimObjectService {
   addBIMObject(contextId: string, parentId: string, dbId: number, model: Model = this.currentModel, name: string) {
     return this.getBIMObject(dbId, model)
       .then(bimObject => {
+        console.log(bimObject);
         if (bimObject) {
 
           return SpinalGraphService
@@ -202,12 +210,14 @@ export class BimObjectService {
             .addChildInContext(parentId, bimObject.id, contextId, BIM_OBJECT_RELATION_NAME, BIM_NODE_RELATION_TYPE)
         }
 
-        return this.createBIMObject(dbId, model, name)
+        return this.createBIMObject(dbId, name, model)
           .then(child => {
+
+            console.log("create Bimobject")
             // @ts-ignore
             return SpinalGraphService
             // @ts-ignore
-              .addChildInContext(parentId, child.getId(), contextId, BIM_OBJECT_RELATION_NAME, BIM_NODE_RELATION_TYPE)
+              .addChildInContext(parentId, child.getId().get(), contextId, BIM_OBJECT_RELATION_NAME, BIM_NODE_RELATION_TYPE)
           })
       })
   }
@@ -354,12 +364,13 @@ export class BimObjectService {
   }
 */
 
+/*
 
-  /**
+  /!**
    *
    * @param bimFileId
    * @param version
-   */
+   *!/
   getAllExternalIdForVersion(bimFileId: string, version: number) {
     return new Promise(resolve => {
 
@@ -378,11 +389,11 @@ export class BimObjectService {
     })
   }
 
-  /**
+  /!**
    * @param version1
    * @param version2
    * @param bimFileId
-   */
+   *!/
   getDifferenceExternalIdForVersion(version1: number, version2: number, bimFileId: string) {
     const promise = [];
     promise.push(this.getAllExternalIdForVersion(bimFileId, version1));
@@ -412,6 +423,7 @@ export class BimObjectService {
 
     })
   }
+*/
 
 
   /**
@@ -419,19 +431,41 @@ export class BimObjectService {
    * @param bimFileId {String} id of the BIMFile
    * @param version {number} version of the bimFile
    * @param model {Model} model loaded into the viewer
-
+   * @param scene {any} scene loaded
    */
-  addModel(bimFileId: string, model: Model, version: number) {
+  addModel(bimFileId: string, model: Model, version: number, scene: any) {
     // @ts-ignore
-    this.mappingModelIdBimFileId[model.id] = {bimFileId, version};
+    this.mappingModelIdBimFileId[model.id] = {bimFileId, version, scene};
+
+    let mapping = this.mappingBimFileIdModelId[bimFileId];
+    if (typeof mapping === "undefined")
+      {
+        mapping = {
+          // @ts-ignore
+                modelId: model.id,
+                version: version,
+                modelScene: [{model, scene}]
+              };
+      }
+    else
+      mapping.modelScene.push({model, scene});
+
+    this.mappingBimFileIdModelId[bimFileId] = mapping;
+  }
 
 
-    this.mappingBimFileIdModelId[bimFileId] = {
-      // @ts-ignore
-      modelId: model.id,
-      version,
-      model
+  /**
+   * Get the model corresponding to the dbid and the bimfile
+   * @param dbId {number} dbId of the BIMObject
+   * @param bimFileId {string} id of the BIMfile
+   */
+  getModel(dbId: number, bimFileId: string) {
+    const mapping = this.mappingBimFileIdModelId[bimFileId];
+    for (let i = 0; i < mapping.modelScene.length; i++) {
+      if (mapping.modelScene[i].scene.hasOwnProperty('options') && mapping.modelScene[i].scene['options'].dbIds.contains(dbId))
+        return mapping.modelScene[i].model;
     }
+    return undefined;
   }
 
 }

@@ -121,6 +121,7 @@ var BimObjectService = /** @class */ (function () {
     BimObjectService.prototype.createBIMObject = function (dbid, name, model) {
         var _this = this;
         if (model === void 0) { model = this.currentModel; }
+        console.log("createBimFiole");
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
             var bimObject, externalId, modelMeta_1, bimId_1, e_2;
             var _this = this;
@@ -194,7 +195,7 @@ var BimObjectService = /** @class */ (function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             var modelMeta = _this.mappingBimFileIdModelId[bimFileId];
-            var model = modelMeta.model;
+            var model = modelMeta.modelScene[0].model;
             model.getExternalIdMapping(function (res) {
                 resolve(res[externalId]);
             }, reject);
@@ -213,17 +214,19 @@ var BimObjectService = /** @class */ (function () {
         if (model === void 0) { model = this.currentModel; }
         return this.getBIMObject(dbId, model)
             .then(function (bimObject) {
+            console.log(bimObject);
             if (bimObject) {
                 return spinal_env_viewer_graph_service_1.SpinalGraphService
                     // @ts-ignore
                     .addChildInContext(parentId, bimObject.id, contextId, Constants_1.BIM_OBJECT_RELATION_NAME, Constants_1.BIM_NODE_RELATION_TYPE);
             }
-            return _this.createBIMObject(dbId, model, name)
+            return _this.createBIMObject(dbId, name, model)
                 .then(function (child) {
+                console.log("create Bimobject");
                 // @ts-ignore
                 return spinal_env_viewer_graph_service_1.SpinalGraphService
                     // @ts-ignore
-                    .addChildInContext(parentId, child.getId(), contextId, Constants_1.BIM_OBJECT_RELATION_NAME, Constants_1.BIM_NODE_RELATION_TYPE);
+                    .addChildInContext(parentId, child.getId().get(), contextId, Constants_1.BIM_OBJECT_RELATION_NAME, Constants_1.BIM_NODE_RELATION_TYPE);
             });
         });
     };
@@ -364,75 +367,101 @@ var BimObjectService = /** @class */ (function () {
       });
     }
   */
-    /**
-     *
-     * @param bimFileId
-     * @param version
-     */
-    BimObjectService.prototype.getAllExternalIdForVersion = function (bimFileId, version) {
-        var _this = this;
-        return new Promise(function (resolve) {
-            _this.getBIMObjectVersion(bimFileId, version)
-                .then(function (child) {
-                // @ts-ignore
-                spinal_env_viewer_graph_service_1.SpinalGraphService
-                    // @ts-ignore
-                    .getChildren(child.id, [Constants_1.BIM_OBJECT_RELATION_NAME])
-                    .then(function (children) {
-                    resolve(children.map(function (children) {
-                        return children.externalId;
-                    }));
-                });
-            });
-        });
-    };
-    /**
-     * @param version1
-     * @param version2
-     * @param bimFileId
-     */
-    BimObjectService.prototype.getDifferenceExternalIdForVersion = function (version1, version2, bimFileId) {
-        var promise = [];
+    /*
+    
+      /!**
+       *
+       * @param bimFileId
+       * @param version
+       *!/
+      getAllExternalIdForVersion(bimFileId: string, version: number) {
+        return new Promise(resolve => {
+    
+          this.getBIMObjectVersion(bimFileId, version)
+            .then(child => {
+              // @ts-ignore
+              SpinalGraphService
+              // @ts-ignore
+                .getChildren(child.id, [BIM_OBJECT_RELATION_NAME])
+                .then(children => {
+                  resolve(children.map(children => {
+                    return children.externalId
+                  }));
+                })
+            })
+        })
+      }
+    
+      /!**
+       * @param version1
+       * @param version2
+       * @param bimFileId
+       *!/
+      getDifferenceExternalIdForVersion(version1: number, version2: number, bimFileId: string) {
+        const promise = [];
         promise.push(this.getAllExternalIdForVersion(bimFileId, version1));
         promise.push(this.getAllExternalIdForVersion(bimFileId, version2));
-        return Promise.all(promise).then(function (result) {
-            var union = result[0].filter(function (node) {
-                return typeof result[1].find(function (n) {
-                    // @ts-ignore
-                    return n.externalId === node.externalId;
-                }) !== "undefined";
-            });
-            var newBIMObj = result[0].filter(function (node) {
-                return typeof result[1].find(function (n) {
-                    // @ts-ignore
-                    return n.externalId === node.externalId;
-                }) === "undefined";
-            });
-            var oldBIMObj = result[1].filter(function (node) {
-                return typeof result[0].find(function (n) {
-                    // @ts-ignore
-                    return n.externalId === node.externalId;
-                }) !== "undefined";
-            });
-            return { union: union, newBIMObj: newBIMObj, oldBIMObj: oldBIMObj };
-        });
-    };
+    
+        return Promise.all(promise).then((result: Array<Array<string>>) => {
+          const union = result[0].filter((node) => {
+            return typeof result[1].find(n => {
+              // @ts-ignore
+              return n.externalId === node.externalId
+            }) !== "undefined";
+          });
+          const newBIMObj = result[0].filter((node) => {
+            return typeof result[1].find(n => {
+              // @ts-ignore
+              return n.externalId === node.externalId
+            }) === "undefined";
+          });
+          const oldBIMObj = result[1].filter((node) => {
+            return typeof result[0].find(n => {
+              // @ts-ignore
+              return n.externalId === node.externalId
+            }) !== "undefined";
+          });
+    
+          return {union, newBIMObj, oldBIMObj};
+    
+        })
+      }
+    */
     /**
      * notify the service that a new model has been load into the viewer
      * @param bimFileId {String} id of the BIMFile
      * @param version {number} version of the bimFile
      * @param model {Model} model loaded into the viewer
-  
+     * @param scene {any} scene loaded
      */
-    BimObjectService.prototype.addModel = function (bimFileId, model, version) {
+    BimObjectService.prototype.addModel = function (bimFileId, model, version, scene) {
         // @ts-ignore
-        this.mappingModelIdBimFileId[model.id] = { bimFileId: bimFileId, version: version };
-        this.mappingBimFileIdModelId[bimFileId] = {
-            // @ts-ignore
-            modelId: model.id,
-            version: version,
-            model: model
-        };
+        this.mappingModelIdBimFileId[model.id] = { bimFileId: bimFileId, version: version, scene: scene };
+        var mapping = this.mappingBimFileIdModelId[bimFileId];
+        if (typeof mapping === "undefined") {
+            mapping = {
+                // @ts-ignore
+                modelId: model.id,
+                version: version,
+                modelScene: [{ model: model, scene: scene }]
+            };
+        }
+        else
+            mapping.modelScene.push({ model: model, scene: scene });
+        this.mappingBimFileIdModelId[bimFileId] = mapping;
+    };
+    /**
+     * Get the model corresponding to the dbid and the bimfile
+     * @param dbId {number} dbId of the BIMObject
+     * @param bimFileId {string} id of the BIMfile
+     */
+    BimObjectService.prototype.getModel = function (dbId, bimFileId) {
+        var mapping = this.mappingBimFileIdModelId[bimFileId];
+        for (var i = 0; i < mapping.modelScene.length; i++) {
+            if (mapping.modelScene[i].scene.hasOwnProperty('options') && mapping.modelScene[i].scene['options'].dbIds.contains(dbId))
+                return mapping.modelScene[i].model;
+        }
+        return undefined;
     };
     return BimObjectService;
 }());

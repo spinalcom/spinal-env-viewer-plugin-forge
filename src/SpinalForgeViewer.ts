@@ -22,7 +22,7 @@ export class SpinalForgeViewer {
           Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
           (event) => {
             console.log(event);
-            if (typeof event.selections !== "undefined" && event.selections.length > 0){
+            if (typeof event.selections !== "undefined" && event.selections.length > 0) {
               this.viewerManager.setCurrentModel(event.selections[0].model);
               this.bimObjectService.setCurrentModel(event.selections[0].model);
 
@@ -79,7 +79,7 @@ export class SpinalForgeViewer {
       );
   }
 
-  loadBimFile(bimfIle: any, options: any = []) {
+  loadBimFile(bimfIle: any, scene: any, options: any = []) {
 
     return new Promise(resolve => {
       this.getSVF(bimfIle.element, bimfIle.id, bimfIle.name)
@@ -101,7 +101,7 @@ export class SpinalForgeViewer {
           this.viewerManager.loadModel(path, option)
             .then(model => {
               this.bimObjectService
-                .addModel(bimfIle.id, model, svfVersionFile.version);
+                .addModel(bimfIle.id, model, svfVersionFile.version, scene);
               resolve({bimFileId: bimfIle.id, model})
             })
         })
@@ -120,7 +120,7 @@ export class SpinalForgeViewer {
             const promises = [];
             const option = typeof node.options !== "undefined" ? node.options : [];
             for (let i = 0; i < children.length; i++) {
-              promises.push(this.loadBimFile(children[i], option));
+              promises.push(this.loadBimFile(children[i], node, option));
             }
             return Promise.all(promises);
 
@@ -136,10 +136,13 @@ export class SpinalForgeViewer {
     }
   }
 
-  getModel(bimFileID: string) {
-    if (typeof this.bimObjectService.mappingBimFileIdModelId[bimFileID] !== "undefined")
-      return this.bimObjectService.mappingBimFileIdModelId[bimFileID].model;
-    return null;
+  /**
+   * return the model associated to the bimfile
+   * @param bimFileId
+   * @param dbId
+   */
+  getModel(bimObject: any ) {
+    return this.bimObjectService.getModel(bimObject.dbId, bimObject.bimFileId);
   }
 
 

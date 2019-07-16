@@ -22,7 +22,12 @@ export declare class SpinalForgeViewer {
         name: string;
         thumbnail: any;
     }>;
-    loadBimFile(bimfIle: any, options?: any): Promise<unknown>;
+    loadBimFile(bimfIle: any, scene: any, options?: any): Promise<unknown>;
     loadModelFromNode(nodeId: string): Promise<any[]>;
-    getModel(bimFileID: string): any;
+    /**
+     * return the model associated to the bimfile
+     * @param bimFileId
+     * @param dbId
+     */
+    getModel(bimObject: any): any;
 }

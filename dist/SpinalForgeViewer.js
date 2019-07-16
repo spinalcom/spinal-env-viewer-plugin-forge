@@ -100,7 +100,7 @@ var SpinalForgeViewer = /** @class */ (function () {
             return undefined;
         });
     };
-    SpinalForgeViewer.prototype.loadBimFile = function (bimfIle, options) {
+    SpinalForgeViewer.prototype.loadBimFile = function (bimfIle, scene, options) {
         var _this = this;
         if (options === void 0) { options = []; }
         return new Promise(function (resolve) {
@@ -121,7 +121,7 @@ var SpinalForgeViewer = /** @class */ (function () {
                 _this.viewerManager.loadModel(path, option)
                     .then(function (model) {
                     _this.bimObjectService
-                        .addModel(bimfIle.id, model, svfVersionFile.version);
+                        .addModel(bimfIle.id, model, svfVersionFile.version, scene);
                     resolve({ bimFileId: bimfIle.id, model: model });
                 });
             });
@@ -145,7 +145,7 @@ var SpinalForgeViewer = /** @class */ (function () {
                                     var promises = [];
                                     var option = typeof node_1.options !== "undefined" ? node_1.options : [];
                                     for (var i = 0; i < children.length; i++) {
-                                        promises.push(_this.loadBimFile(children[i], option));
+                                        promises.push(_this.loadBimFile(children[i], node_1, option));
                                     }
                                     return Promise.all(promises);
                                 })];
@@ -166,10 +166,13 @@ var SpinalForgeViewer = /** @class */ (function () {
             });
         });
     };
-    SpinalForgeViewer.prototype.getModel = function (bimFileID) {
-        if (typeof this.bimObjectService.mappingBimFileIdModelId[bimFileID] !== "undefined")
-            return this.bimObjectService.mappingBimFileIdModelId[bimFileID].model;
-        return null;
+    /**
+     * return the model associated to the bimfile
+     * @param bimFileId
+     * @param dbId
+     */
+    SpinalForgeViewer.prototype.getModel = function (bimObject) {
+        return this.bimObjectService.getModel(bimObject.dbId, bimObject.bimFileId);
     };
     return SpinalForgeViewer;
 }());
