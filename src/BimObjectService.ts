@@ -30,7 +30,6 @@ export class BimObjectService {
     this.currentModel = model;
   }
 
-
   /**
    * Return the node where to attach BIMObject
    * @param bimFileId {String} id of the BIMFile
