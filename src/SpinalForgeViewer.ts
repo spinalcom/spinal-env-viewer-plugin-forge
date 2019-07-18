@@ -101,7 +101,7 @@ export class SpinalForgeViewer {
           this.viewerManager.loadModel(path, option)
             .then(model => {
               this.bimObjectService
-                .addModel(bimfIle.id, model, svfVersionFile.version, scene);
+                .addModel(bimfIle.id, model, svfVersionFile.version, scene, bimfIle.name);
               resolve({bimFileId: bimfIle.id, model})
             })
         })

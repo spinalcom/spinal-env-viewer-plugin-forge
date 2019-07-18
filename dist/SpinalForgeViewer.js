@@ -121,7 +121,7 @@ var SpinalForgeViewer = /** @class */ (function () {
                 _this.viewerManager.loadModel(path, option)
                     .then(function (model) {
                     _this.bimObjectService
-                        .addModel(bimfIle.id, model, svfVersionFile.version, scene);
+                        .addModel(bimfIle.id, model, svfVersionFile.version, scene, bimfIle.name);
                     resolve({ bimFileId: bimfIle.id, model: model });
                 });
             });

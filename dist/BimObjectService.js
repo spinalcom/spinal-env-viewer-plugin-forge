@@ -41,6 +41,7 @@ var BimObjectService = /** @class */ (function () {
     function BimObjectService() {
         this.mappingModelIdBimFileId = {};
         this.mappingBimFileIdModelId = {};
+        this.mappingNameByModel = {};
     }
     BimObjectService.prototype.setCurrentModel = function (model) {
         this.currentModel = model;
@@ -121,7 +122,6 @@ var BimObjectService = /** @class */ (function () {
     BimObjectService.prototype.createBIMObject = function (dbid, name, model) {
         var _this = this;
         if (model === void 0) { model = this.currentModel; }
-        console.log("createBimFiole");
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
             var bimObject, externalId, modelMeta_1, bimId_1, e_2;
             var _this = this;
@@ -209,7 +209,7 @@ var BimObjectService = /** @class */ (function () {
      * @param model {Model}
      * @param name {string}
      */
-    BimObjectService.prototype.addBIMObject = function (contextId, parentId, dbId, model, name) {
+    BimObjectService.prototype.addBIMObject = function (contextId, parentId, dbId, name, model) {
         var _this = this;
         if (model === void 0) { model = this.currentModel; }
         return this.getBIMObject(dbId, model)
@@ -268,7 +268,7 @@ var BimObjectService = /** @class */ (function () {
      * @param model {Model}
      * @param name {string}
      */
-    BimObjectService.prototype.addReferenceObject = function (parentId, dbId, model, name) {
+    BimObjectService.prototype.addReferenceObject = function (parentId, dbId, name, model) {
         if (model === void 0) { model = this.currentModel; }
         this.getBIMObject(dbId, model)
             .then(function (child) {
@@ -368,7 +368,7 @@ var BimObjectService = /** @class */ (function () {
     }
   */
     /*
-    
+  
       /!**
        *
        * @param bimFileId
@@ -376,7 +376,7 @@ var BimObjectService = /** @class */ (function () {
        *!/
       getAllExternalIdForVersion(bimFileId: string, version: number) {
         return new Promise(resolve => {
-    
+  
           this.getBIMObjectVersion(bimFileId, version)
             .then(child => {
               // @ts-ignore
@@ -391,7 +391,7 @@ var BimObjectService = /** @class */ (function () {
             })
         })
       }
-    
+  
       /!**
        * @param version1
        * @param version2
@@ -401,7 +401,7 @@ var BimObjectService = /** @class */ (function () {
         const promise = [];
         promise.push(this.getAllExternalIdForVersion(bimFileId, version1));
         promise.push(this.getAllExternalIdForVersion(bimFileId, version2));
-    
+  
         return Promise.all(promise).then((result: Array<Array<string>>) => {
           const union = result[0].filter((node) => {
             return typeof result[1].find(n => {
@@ -421,9 +421,9 @@ var BimObjectService = /** @class */ (function () {
               return n.externalId === node.externalId
             }) !== "undefined";
           });
-    
+  
           return {union, newBIMObj, oldBIMObj};
-    
+  
         })
       }
     */
@@ -434,9 +434,10 @@ var BimObjectService = /** @class */ (function () {
      * @param model {Model} model loaded into the viewer
      * @param scene {any} scene loaded
      */
-    BimObjectService.prototype.addModel = function (bimFileId, model, version, scene) {
+    BimObjectService.prototype.addModel = function (bimFileId, model, version, scene, name) {
         // @ts-ignore
         this.mappingModelIdBimFileId[model.id] = { bimFileId: bimFileId, version: version, scene: scene };
+        this.mappingNameByModel[name] = model;
         var mapping = this.mappingBimFileIdModelId[bimFileId];
         if (typeof mapping === "undefined") {
             mapping = {
@@ -457,11 +458,19 @@ var BimObjectService = /** @class */ (function () {
      */
     BimObjectService.prototype.getModel = function (dbId, bimFileId) {
         var mapping = this.mappingBimFileIdModelId[bimFileId];
-        for (var i = 0; i < mapping.modelScene.length; i++) {
-            if (mapping.modelScene[i].scene.hasOwnProperty('options') && mapping.modelScene[i].scene['options'].dbIds.contains(dbId))
-                return mapping.modelScene[i].model;
-        }
+        if (typeof mapping !== "undefined")
+            for (var i = 0; i < mapping.modelScene.length; i++) {
+                if (mapping.modelScene[i].scene.hasOwnProperty('options') && mapping.modelScene[i].scene['options'].dbIds.contains(dbId))
+                    return mapping.modelScene[i].model;
+            }
         return undefined;
+    };
+    /**
+     * Get a model corresponding to the name use with caution
+     * @param name
+     */
+    BimObjectService.prototype.getModelByName = function (name) {
+        return this.mappingNameByModel[name];
     };
     return BimObjectService;
 }());
