@@ -10,7 +10,7 @@ export declare class SpinalForgeViewer {
     viewerManager: any;
     initialize(viewerManager: any): Promise<boolean>;
     isInitialize(): boolean;
-    waitForInitialization(): Promise<unknown>;
+    waitForInitialization(): Promise<{}>;
     getScene(modelId: number): {
         sceneId: string;
         modelIds: number[];
@@ -22,7 +22,7 @@ export declare class SpinalForgeViewer {
         name: string;
         thumbnail: any;
     }>;
-    loadBimFile(bimfIle: any, scene: any, options?: any): Promise<unknown>;
+    loadBimFile(bimfIle: any, scene: any, options?: any): Promise<{}>;
     loadModelFromNode(nodeId: string): Promise<any[]>;
     /**
      * return the model associated to the bimfile

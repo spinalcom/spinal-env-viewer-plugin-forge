@@ -89,6 +89,7 @@ export class SpinalForgeViewer {
 
             if (options[i].urn.get().includes(svfVersionFile.path) !== -1) {
               option = options[i];
+
               break;
             }
 
@@ -114,7 +115,6 @@ export class SpinalForgeViewer {
       const node = await SpinalGraphService.getNodeAsync(nodeId);
 
       if (node.type.get() === SCENE_TYPE) {
-        console.log(node);
         return SceneHelper.getBimFilesFromScene(nodeId)
           .then((children: any) => {
             const promises = [];
