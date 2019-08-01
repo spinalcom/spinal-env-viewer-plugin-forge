@@ -86,17 +86,15 @@ export class SpinalForgeViewer {
         .then((svfVersionFile) => {
           let option;
           for (let i = 0; i < options.length; i++) {
-
             if (options[i].urn.get().includes(svfVersionFile.path) !== -1) {
               option = options[i];
 
               break;
             }
-
           }
           if (typeof option === "undefined")
             option = {};
-          else if (option.dbIds.get().length > 0)
+          else if ( option.hasOwnProperty('dbIds') && option.dbIds.get().length > 0)
             option = {ids: option.dbIds.get()};
           const path = window.location.origin + svfVersionFile.path;
           this.viewerManager.loadModel(path, option)
@@ -118,6 +116,7 @@ export class SpinalForgeViewer {
         return SceneHelper.getBimFilesFromScene(nodeId)
           .then((children: any) => {
             const promises = [];
+            console.log(node);
             const option = typeof node.options !== "undefined" ? node.options : [];
             for (let i = 0; i < children.length; i++) {
               promises.push(this.loadBimFile(children[i], node, option));
