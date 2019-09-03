@@ -518,6 +518,13 @@ var BimObjectService = /** @class */ (function () {
             }
         return undefined;
     };
+    BimObjectService.prototype.getModelByBimfile = function (bimFileId) {
+        var mapping = this.mappingBimFileIdModelId[bimFileId];
+        //one bimFile is note supposed to be load multipe time
+        if (typeof mapping !== "undefined")
+            return mapping.modelScene[0].model;
+        return undefined;
+    };
     /**
      * Get a model corresponding to the name use with caution
      * @param name
