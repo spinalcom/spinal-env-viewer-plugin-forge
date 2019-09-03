@@ -521,6 +521,14 @@ export class BimObjectService {
       }
     return undefined;
   }
+  
+  getModelByBimfile( bimFileId: string){
+    const mapping = this.mappingBimFileIdModelId[bimFileId];
+    //one bimFile is note supposed to be load multipe time
+    if (typeof mapping !== "undefined")
+     return mapping.modelScene[0].model;
+    return undefined;
+  }
 
   /**
    * Get a model corresponding to the name use with caution
