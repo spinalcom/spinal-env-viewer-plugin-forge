@@ -174,6 +174,20 @@ var SpinalForgeViewer = /** @class */ (function () {
     SpinalForgeViewer.prototype.getModel = function (bimObject) {
         return this.bimObjectService.getModel(bimObject.dbId, bimObject.bimFileId);
     };
+    SpinalForgeViewer.prototype.loadModelFromBimFile = function (bimFile) {
+        var _this = this;
+        return new Promise(function (resolve) {
+            _this.getSVF(bimFile.element, bimFile.id, bimFile.name)
+                .then(function (svfVersionFile) {
+                var path = window.location.origin + svfVersionFile.path;
+                _this.viewerManager.loadModel(path, {})
+                    .then(function (model) {
+                    _this.bimObjectService._addModel(bimFile.id.get(), model);
+                    resolve({ model: model });
+                });
+            });
+        });
+    };
     return SpinalForgeViewer;
 }());
 exports.SpinalForgeViewer = SpinalForgeViewer;

@@ -30,4 +30,5 @@ export declare class SpinalForgeViewer {
      * @param dbId
      */
     getModel(bimObject: any): any;
+    loadModelFromBimFile(bimFile: any): Promise<unknown>;
 }

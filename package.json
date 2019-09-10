@@ -1,6 +1,6 @@
 {
   "name": "spinal-env-viewer-plugin-forge",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -15,5 +15,8 @@
     "typedoc": "^0.14.2",
     "typedoc-plugin-markdown": "^2.0.9",
     "typescript": "^3.5.3"
+  },
+  "dependencies": {
+    "spinal-env-viewer-graph-service": "git+https://github.com/spinalcom/Spinal-Graph-Service.git"
   }
 }

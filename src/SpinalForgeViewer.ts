@@ -145,5 +145,17 @@ export class SpinalForgeViewer {
     return this.bimObjectService.getModel(bimObject.dbId, bimObject.bimFileId);
   }
 
-
+  loadModelFromBimFile(bimFile: any){
+    return new Promise(resolve => {
+      this.getSVF(bimFile.element, bimFile.id, bimFile.name)
+        .then((svfVersionFile) => {
+          const path = window.location.origin + svfVersionFile.path;
+          this.viewerManager.loadModel(path, {})
+            .then(model => {
+              this.bimObjectService._addModel(bimFile.id.get(), model)
+              resolve({model})
+            })
+        })
+    })
+  }
 }

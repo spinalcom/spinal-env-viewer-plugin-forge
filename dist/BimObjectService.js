@@ -433,6 +433,7 @@ var BimObjectService = /** @class */ (function () {
      * @param version {number} version of the bimFile
      * @param model {Model} model loaded into the viewer
      * @param scene {any} scene loaded
+     * @param name
      */
     BimObjectService.prototype.addModel = function (bimFileId, model, version, scene, name) {
         // @ts-ignore
@@ -450,6 +451,11 @@ var BimObjectService = /** @class */ (function () {
         else
             mapping.modelScene.push({ model: model, scene: scene });
         this.mappingBimFileIdModelId[bimFileId] = mapping;
+    };
+    BimObjectService.prototype._addModel = function (bimFileId, model) {
+        // @ts-ignore
+        this.mappingModelIdBimFileId[model.id] = { bimFileId: bimFileId, version: 0, scene: undefined };
+        this.mappingNameByModel[name] = model;
     };
     /**
      * Get the model corresponding to the dbid and the bimfile
