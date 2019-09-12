@@ -21,11 +21,9 @@ export class SpinalForgeViewer {
         this.viewerManager.viewer.addEventListener(
           Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
           (event) => {
-            console.log(event);
             if (typeof event.selections !== "undefined" && event.selections.length > 0) {
               this.viewerManager.setCurrentModel(event.selections[0].model);
               this.bimObjectService.setCurrentModel(event.selections[0].model);
-
             }
 
           });
@@ -80,24 +78,28 @@ export class SpinalForgeViewer {
   }
 
   loadBimFile(bimfIle: any, scene: any, options: any = []) {
-
     return new Promise(resolve => {
       this.getSVF(bimfIle.element, bimfIle.id, bimfIle.name)
         .then((svfVersionFile) => {
           let option;
           for (let i = 0; i < options.length; i++) {
-
             if (options[i].urn.get().includes(svfVersionFile.path) !== -1) {
-              option = options[i];
+              option = options[i].get();
               break;
             }
-
           }
+
           if (typeof option === "undefined")
             option = {};
-          else if (option.dbIds.get().length > 0)
+          else if ( option.hasOwnProperty('dbIds') && option.dbIds.get().length > 0)
             option = {ids: option.dbIds.get()};
+
           const path = window.location.origin + svfVersionFile.path;
+
+          if (option.hasOwnProperty('loadOption') && option.loadOption.hasOwnProperty('globalOffset')) {
+            option['globalOffset'] = option.loadOption.globalOffset
+          }
+
           this.viewerManager.loadModel(path, option)
             .then(model => {
               this.bimObjectService
