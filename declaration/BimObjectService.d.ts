@@ -21,6 +21,7 @@ export declare class BimObjectService {
     mappingNameByModel: {
         [name: string]: Model;
     };
+    static num: number;
     private currentModel;
     setCurrentModel(model: Model): void;
     /**
@@ -30,19 +31,19 @@ export declare class BimObjectService {
     getBimFileContext(bimFileId: string): Promise<any>;
     createBIMFileContext(bimFileId: string): Promise<unknown>;
     /**
-     * Return the BIMObject corresponding dbid and the model
-     * @param dbId {number}
-     * @param model {Model}
-     */
-    getBIMObject(dbId: number, model?: Model): Promise<unknown>;
-    /**
      * create a BIMObject for the corresponding dbid and model
      * @param dbid {number}
      * @param model {Model}
      * @param name {string} name of the bimObject
      * @returns {boolean} true if the BIMObject has been created false otherwise
      */
-    createBIMObject(dbid: number, name: string, model?: Model): Promise<unknown>;
+    createBIMObject(dbid: number, name: string, model?: Model): any;
+    /**
+     * Return the BIMObject corresponding dbid and the model
+     * @param dbId {number}
+     * @param model {Model}
+     */
+    getBIMObject(dbId: number, model?: Model): Promise<unknown>;
     /**
      * Return the external id for the given dbid
      * @param dbId {number}
@@ -57,6 +58,8 @@ export declare class BimObjectService {
      * @returns {number} dbid of the given external id
      */
     getDbIdFromExternalId(externalId: string, bimFileId: string): Promise<unknown>;
+    getDdIdFromExternalIdFromModel(externalId: string, model: Model): Promise<unknown>;
+    getDdIdsFromExternalIds(externalIds: string[], model: Model): Promise<unknown>;
     /**
      * Add a BIMObject to a node
      * @param contextId  {string} context id where the BIMObject supposed to be
@@ -86,7 +89,7 @@ export declare class BimObjectService {
      * @param model {Model}
      * @param name {string}
      */
-    addReferenceObject(parentId: string, dbId: number, name: string, model?: Model): void;
+    addReferenceObject(parentId: string, dbId: number, name: string, model?: Model): Promise<unknown>;
     /**
      *
      * @param parentId
@@ -110,6 +113,7 @@ export declare class BimObjectService {
      * @param bimFileId {string} id of the BIMfile
      */
     getModel(dbId: number, bimFileId: string): Model;
+    getModelByBimfile(bimFileId: string): Model;
     /**
      * Get a model corresponding to the name use with caution
      * @param name

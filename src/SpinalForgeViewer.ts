@@ -116,7 +116,6 @@ export class SpinalForgeViewer {
       const node = await SpinalGraphService.getNodeAsync(nodeId);
 
       if (node.type.get() === SCENE_TYPE) {
-        console.log(node);
         return SceneHelper.getBimFilesFromScene(nodeId)
           .then((children: any) => {
             const promises = [];

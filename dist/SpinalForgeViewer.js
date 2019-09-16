@@ -142,7 +142,6 @@ var SpinalForgeViewer = /** @class */ (function () {
                     case 1:
                         node_1 = _a.sent();
                         if (node_1.type.get() === Constants_1.SCENE_TYPE) {
-                            console.log(node_1);
                             return [2 /*return*/, SceneHelper_1.SceneHelper.getBimFilesFromScene(nodeId)
                                     .then(function (children) {
                                     var promises = [];
