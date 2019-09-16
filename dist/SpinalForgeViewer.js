@@ -50,7 +50,6 @@ var SpinalForgeViewer = /** @class */ (function () {
             this.initialized = new Promise(function (resolve) {
                 _this.viewerManager = viewerManager;
                 _this.viewerManager.viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, function (event) {
-                    console.log(event);
                     if (typeof event.selections !== "undefined" && event.selections.length > 0) {
                         _this.viewerManager.setCurrentModel(event.selections[0].model);
                         _this.bimObjectService.setCurrentModel(event.selections[0].model);
@@ -109,7 +108,7 @@ var SpinalForgeViewer = /** @class */ (function () {
                 var option;
                 for (var i = 0; i < options.length; i++) {
                     if (options[i].urn.get().includes(svfVersionFile.path) !== -1) {
-                        option = options[i];
+                        option = options[i].get();
                         break;
                     }
                 }
@@ -118,6 +117,9 @@ var SpinalForgeViewer = /** @class */ (function () {
                 else if (option.hasOwnProperty('dbIds') && option.dbIds.get().length > 0)
                     option = { ids: option.dbIds.get() };
                 var path = window.location.origin + svfVersionFile.path;
+                if (option.hasOwnProperty('loadOption') && option.loadOption.hasOwnProperty('globalOffset')) {
+                    option['globalOffset'] = option.loadOption.globalOffset;
+                }
                 _this.viewerManager.loadModel(path, option)
                     .then(function (model) {
                     _this.bimObjectService
@@ -173,6 +175,20 @@ var SpinalForgeViewer = /** @class */ (function () {
      */
     SpinalForgeViewer.prototype.getModel = function (bimObject) {
         return this.bimObjectService.getModel(bimObject.dbId, bimObject.bimFileId);
+    };
+    SpinalForgeViewer.prototype.loadModelFromBimFile = function (bimFile) {
+        var _this = this;
+        return new Promise(function (resolve) {
+            _this.getSVF(bimFile.element, bimFile.id, bimFile.name)
+                .then(function (svfVersionFile) {
+                var path = window.location.origin + svfVersionFile.path;
+                _this.viewerManager.loadModel(path, {})
+                    .then(function (model) {
+                    _this.bimObjectService._addModel(bimFile.id.get(), model);
+                    resolve({ model: model });
+                });
+            });
+        });
     };
     return SpinalForgeViewer;
 }());
