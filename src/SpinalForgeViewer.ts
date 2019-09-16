@@ -91,8 +91,9 @@ export class SpinalForgeViewer {
 
           if (typeof option === "undefined")
             option = {};
-          else if ( option.hasOwnProperty('dbIds') && option.dbIds.get().length > 0)
-            option = {ids: option.dbIds.get()};
+
+          else if ( option.hasOwnProperty('dbIds') && option.dbIds.length > 0)
+            option = {ids: option.dbIds};
 
           const path = window.location.origin + svfVersionFile.path;
 
