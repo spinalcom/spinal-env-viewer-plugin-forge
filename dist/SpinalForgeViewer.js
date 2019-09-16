@@ -115,8 +115,8 @@ var SpinalForgeViewer = /** @class */ (function () {
                 }
                 if (typeof option === "undefined")
                     option = {};
-                else if (option.hasOwnProperty('dbIds') && option.dbIds.get().length > 0)
-                    option = { ids: option.dbIds.get() };
+                else if (option.hasOwnProperty('dbIds') && option.dbIds.length > 0)
+                    option = { ids: option.dbIds };
                 var path = window.location.origin + svfVersionFile.path;
                 if (option.hasOwnProperty('loadOption') && option.loadOption.hasOwnProperty('globalOffset')) {
                     option['globalOffset'] = option.loadOption.globalOffset;
