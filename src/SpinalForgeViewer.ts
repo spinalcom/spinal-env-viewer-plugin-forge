@@ -4,7 +4,6 @@ import { SCENE_TYPE } from "./Constants";
 
 import { loadModelPtr } from "./utils";
 import { SceneHelper } from "./SceneHelper";
-import { type } from "os";
 
 export class SpinalForgeViewer {
 
@@ -13,6 +12,7 @@ export class SpinalForgeViewer {
   public scenes: { sceneId: string, modelIds: number[] }[];
   public bimObjectService: BimObjectService = new BimObjectService();
   public viewerManager: any;
+  private overlayName = "spinal-material-overlay"
 
   initialize(viewerManager) {
     if (typeof this.initialized === "undefined")
@@ -144,7 +144,7 @@ export class SpinalForgeViewer {
    * @param dbId
    */
   getModel(bimObject: any ) {
-    return this.bimObjectService.getModel(bimObject.dbId, bimObject.bimFileId);
+    return this.bimObjectService.getModel(bimObject.dbid.get(), bimObject.bimFileId.get());
   }
 
   loadModelFromBimFile(bimFile: any){
@@ -159,5 +159,91 @@ export class SpinalForgeViewer {
             })
         })
     })
+  }
+
+  private addMaterial(color) {
+    // @ts-ignore
+    const material = new THREE.MeshPhongMaterial({
+      color: color
+    });
+
+    this.viewerManager.viewer.impl.createOverlayScene(this.overlayName, material, material);
+    return material;
+  }
+
+  // @ts-ignore
+  setModelColorMaterial(model: any, color: THREE.Color, ids: number[]){
+    var material = this.addMaterial(color);
+
+    for (var i=0; i<ids.length; i++) {
+
+      var dbid = ids[i];
+
+      //from dbid to node, to fragid
+      var it = this.viewerManager.viewer.model.getData().instanceTree;
+
+      it.enumNodeFragments(dbid,  (function(fragId){
+
+
+        var renderProxy = this.viewerManager.viewer.impl.getRenderProxy(model, fragId);
+        // @ts-ignore
+        renderProxy.meshProxy = new THREE.Mesh(renderProxy.geometry, renderProxy.material);
+
+        renderProxy.meshProxy.matrix.copy(renderProxy.matrixWorld);
+        renderProxy.meshProxy.matrixWorldNeedsUpdate = true;
+        renderProxy.meshProxy.matrixAutoUpdate = false;
+        renderProxy.meshProxy.frustumCulled = false;
+
+        this.viewerManager.viewer.impl.addOverlay(this.overlayName, renderProxy.meshProxy);
+        this.viewerManager.viewer.impl.invalidate(true);
+
+      }).bind(this), false);
+    }
+
+  }
+
+  setColorMaterial(aggregateSelection: {model: any, selection: number[]}[], color: any) {
+    for (let i = 0; i < aggregateSelection.length; i++) {
+      const model = aggregateSelection[i].model;
+      const ids = aggregateSelection[i].selection;
+      this.setModelColorMaterial(model , color, ids)
+    }
+  }
+
+  restoreColorMaterial(aggregateSelection: {model: any, selection: number[]}[]){
+    for (let i = 0; i < aggregateSelection.length; i++) {
+      const model = aggregateSelection[1].model;
+      const ids = aggregateSelection[1].selection;
+      this.restoreModelColorMaterial(model, ids);
+    }
+  }
+
+  restoreModelColorMaterial(model, ids){
+    for (var i=0; i< ids.length; i++) {
+
+      var dbid = ids[i];
+
+
+      //from dbid to node, to fragid
+      var it = model.getData().instanceTree;
+
+      it.enumNodeFragments(dbid, function (fragId) {
+
+
+        var renderProxy = this.viewerManager.viewer.impl.getRenderProxy(model, fragId);
+
+        if(renderProxy.meshProxy){
+
+          //remove all overlays with same name
+          this.viewerManager.viewer.impl.clearOverlay(this.overlayName);
+          //viewer.impl.removeOverlay(overlayName, renderProxy.meshProxy);
+          delete renderProxy.meshProxy;
+
+          //refresh the scene
+          this.viewerManager.viewer.impl.invalidate(true);
+        }
+
+      }, true);
+    }
   }
 }
