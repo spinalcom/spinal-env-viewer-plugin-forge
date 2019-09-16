@@ -144,7 +144,6 @@ var SpinalForgeViewer = /** @class */ (function () {
                             return [2 /*return*/, SceneHelper_1.SceneHelper.getBimFilesFromScene(nodeId)
                                     .then(function (children) {
                                     var promises = [];
-                                    console.log(node_1);
                                     var option = typeof node_1.options !== "undefined" ? node_1.options : [];
                                     for (var i = 0; i < children.length; i++) {
                                         promises.push(_this.loadBimFile(children[i], node_1, option));

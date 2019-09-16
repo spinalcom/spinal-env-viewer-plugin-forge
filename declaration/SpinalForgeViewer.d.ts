@@ -1,3 +1,4 @@
+/// <reference types="forge-viewer" />
 import { BimObjectService } from "./BimObjectService";
 export declare class SpinalForgeViewer {
     currentSceneId: string;
@@ -10,7 +11,7 @@ export declare class SpinalForgeViewer {
     viewerManager: any;
     initialize(viewerManager: any): Promise<boolean>;
     isInitialize(): boolean;
-    waitForInitialization(): Promise<{}>;
+    waitForInitialization(): Promise<unknown>;
     getScene(modelId: number): {
         sceneId: string;
         modelIds: number[];
@@ -22,13 +23,13 @@ export declare class SpinalForgeViewer {
         name: string;
         thumbnail: any;
     }>;
-    loadBimFile(bimfIle: any, scene: any, options?: any): Promise<{}>;
+    loadBimFile(bimfIle: any, scene: any, options?: any): Promise<unknown>;
     loadModelFromNode(nodeId: string): Promise<any[]>;
     /**
      * return the model associated to the bimfile
      * @param bimFileId
      * @param dbId
      */
-    getModel(bimObject: any): any;
+    getModel(bimObject: any): Autodesk.Viewing.Model;
     loadModelFromBimFile(bimFile: any): Promise<unknown>;
 }
