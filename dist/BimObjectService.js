@@ -113,7 +113,7 @@ var BimObjectService = /** @class */ (function () {
                                 spinal_env_viewer_graph_service_1.SpinalGraphService
                                     .addChild(node.id, bimId_1, Constants_1.BIM_OBJECT_RELATION_NAME, Constants_1.BIM_OBJECT_RELATION_TYPE)
                                     .then(function (res) {
-                                    resolve(spinal_env_viewer_graph_service_1.SpinalGraphService.getNode(bimId_1));
+                                    spinal_env_viewer_graph_service_1.SpinalGraphService.getNodeAsync(bimId_1).then(resolve);
                                 });
                             }
                             else {
@@ -125,7 +125,7 @@ var BimObjectService = /** @class */ (function () {
                                             spinal_env_viewer_graph_service_1.SpinalGraphService
                                                 .addChild(node.id, bimId_1, Constants_1.BIM_OBJECT_RELATION_NAME, Constants_1.BIM_OBJECT_RELATION_TYPE)
                                                 .then(function () {
-                                                resolve(spinal_env_viewer_graph_service_1.SpinalGraphService.getNode(bimId_1));
+                                                spinal_env_viewer_graph_service_1.SpinalGraphService.getNodeAsync(bimId_1).then(resolve);
                                             }).catch(console.error);
                                         }
                                     });

@@ -94,7 +94,8 @@ export class BimObjectService {
               SpinalGraphService
                 .addChild(node.id, bimId, BIM_OBJECT_RELATION_NAME, BIM_OBJECT_RELATION_TYPE)
                 .then(res => {
-                  resolve(SpinalGraphService.getNode(bimId));
+                  SpinalGraphService.getNodeAsync(bimId).then(resolve)
+
                 })
             } else {
               this.createBIMFileContext(modelMeta.bimFileId)
@@ -105,7 +106,7 @@ export class BimObjectService {
                         SpinalGraphService
                           .addChild(node.id, bimId, BIM_OBJECT_RELATION_NAME, BIM_OBJECT_RELATION_TYPE)
                           .then(() => {
-                            resolve(SpinalGraphService.getNode(bimId));
+                            SpinalGraphService.getNodeAsync(bimId).then(resolve)
                           }).catch(console.error)
                       }
                     });
