@@ -1,5 +1,5 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
 var mapModelDictionary = new Map();
 function loadModelPtr(model) {
@@ -26,7 +26,7 @@ function loadModelPtr(model) {
     var promise = new Promise(function (resolve, reject) {
         model.load(function (m) {
             if (!m) {
-                mapModelDictionary.delete(model.data.value);
+                mapModelDictionary["delete"](model.data.value);
                 reject(new Error('Error in load Ptr'));
             }
             else {

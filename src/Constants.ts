@@ -13,7 +13,7 @@ export const BIM_CONTEXT_RELATION_TYPE : string = SPINAL_RELATION_PTR_LST_TYPE;
 export const BIM_NODE_RELATION_NAME: string = "hasBimNode";
 export const BIM_OBJECT_RELATION_NAME: string = "hasBimObject";
 export const BIM_OBJECT_VERSION_RELATION_NAME: string = "hasBimVersion";
-export const REFERENCE_OBJECT_RELATION_NAME: string = "hasReferenceObject";
+export const REFERENCE_OBJECT_RELATION_NAME: string = "hasReference";
 
 export const BIM_OBJECT_VERSION_RELATION_TYPE: string = SPINAL_RELATION_PTR_LST_TYPE;
 export const BIM_NODE_RELATION_TYPE: string = SPINAL_RELATION_PTR_LST_TYPE;

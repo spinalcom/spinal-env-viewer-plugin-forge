@@ -1,5 +1,5 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var SpinalForgeViewer_1 = require("./SpinalForgeViewer");
 exports.SpinalForgeViewer = SpinalForgeViewer_1.SpinalForgeViewer;
 // @ts-ignore

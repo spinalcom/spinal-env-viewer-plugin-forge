@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -34,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 var Constants_1 = require("./Constants");
 var BimObjectService = /** @class */ (function () {
@@ -59,8 +60,7 @@ var BimObjectService = /** @class */ (function () {
                     resolve(children[0]);
                 else
                     resolve(undefined);
-            })
-                .catch(reject);
+            })["catch"](reject);
         });
     };
     BimObjectService.prototype.createBIMFileContext = function (bimFileId) {
@@ -126,7 +126,7 @@ var BimObjectService = /** @class */ (function () {
                                                 .addChild(node.id, bimId_1, Constants_1.BIM_OBJECT_RELATION_NAME, Constants_1.BIM_OBJECT_RELATION_TYPE)
                                                 .then(function () {
                                                 spinal_env_viewer_graph_service_1.SpinalGraphService.getNodeAsync(bimId_1).then(resolve);
-                                            }).catch(console.error);
+                                            })["catch"](console.error);
                                         }
                                     });
                                 });
@@ -170,11 +170,11 @@ var BimObjectService = /** @class */ (function () {
                                         return node.info.externalId.get() === externalId_1;
                                     });
                                     resolve(child);
-                                }).catch(console.error);
+                                })["catch"](console.error);
                             }
                             else
                                 resolve(undefined);
-                        }).catch(console.error);
+                        })["catch"](console.error);
                         return [3 /*break*/, 3];
                     case 2:
                         e_2 = _a.sent();
@@ -264,8 +264,7 @@ var BimObjectService = /** @class */ (function () {
                     return child;
                 });
             });
-        })
-            .catch(console.error);
+        })["catch"](console.error);
     };
     /**
      * Remove a BIMObject from a parent
@@ -294,7 +293,7 @@ var BimObjectService = /** @class */ (function () {
                 delete _this.mappingBimFileIdModelId[modelMetaData.bimFileId];
                 // @ts-ignore
                 resolve(spinal_env_viewer_graph_service_1.SpinalGraphService.removeFromGraph(bimObject.id));
-            }).catch(reject);
+            })["catch"](reject);
         });
     };
     /**

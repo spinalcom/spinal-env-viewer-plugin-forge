@@ -1,5 +1,5 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 var Constants_1 = require("./Constants");
 var SceneHelper = /** @class */ (function () {
@@ -17,7 +17,7 @@ var SceneHelper = /** @class */ (function () {
                     SceneHelper.context = context;
                     SceneHelper.contextId = context.getId();
                     resolve(true);
-                }).catch(reject);
+                })["catch"](reject);
             }
             resolve(true);
         });

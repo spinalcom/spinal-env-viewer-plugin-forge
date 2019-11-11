@@ -1,5 +1,5 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 exports.SCENE_RELATION_NAME = 'hasScene';
 exports.SCENE_TYPE = "scene";
@@ -12,7 +12,7 @@ exports.BIM_CONTEXT_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_REL
 exports.BIM_NODE_RELATION_NAME = "hasBimNode";
 exports.BIM_OBJECT_RELATION_NAME = "hasBimObject";
 exports.BIM_OBJECT_VERSION_RELATION_NAME = "hasBimVersion";
-exports.REFERENCE_OBJECT_RELATION_NAME = "hasReferenceObject";
+exports.REFERENCE_OBJECT_RELATION_NAME = "hasReference";
 exports.BIM_OBJECT_VERSION_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_RELATION_PTR_LST_TYPE;
 exports.BIM_NODE_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_RELATION_PTR_LST_TYPE;
 exports.BIM_OBJECT_RELATION_TYPE = spinal_env_viewer_graph_service_1.SPINAL_RELATION_PTR_LST_TYPE;
