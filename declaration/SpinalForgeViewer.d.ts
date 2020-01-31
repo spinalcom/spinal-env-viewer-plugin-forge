@@ -1,5 +1,8 @@
 /// <reference types="forge-viewer" />
+import { SpinalNodePointer } from "spinal-env-viewer-graph-service";
 import { BimObjectService } from "./BimObjectService";
+import Model = Autodesk.Viewing.Model;
+import { BimFileNodeRef, SceneNodeRef, SceneOptions, BimObjectRef } from './interfaces';
 export declare class SpinalForgeViewer {
     currentSceneId: string;
     initialized: Promise<boolean>;
@@ -10,6 +13,7 @@ export declare class SpinalForgeViewer {
     bimObjectService: BimObjectService;
     viewerManager: any;
     private overlayName;
+    private option;
     initialize(viewerManager: any): Promise<boolean>;
     isInitialize(): boolean;
     waitForInitialization(): Promise<unknown>;
@@ -17,31 +21,40 @@ export declare class SpinalForgeViewer {
         sceneId: string;
         modelIds: number[];
     }[];
-    getSVF(element: any, nodeId: string, name: string): Promise<{
+    getSVF(element: SpinalNodePointer<any>, nodeId: string, name: string): Promise<{
         version: any;
-        path: any;
+        path: string;
         id: string;
         name: string;
         thumbnail: any;
     }>;
-    loadBimFile(bimfIle: any, scene: any, options?: any): Promise<unknown>;
-    loadModelFromNode(nodeId: string): Promise<any[]>;
+    loadBimFile(bimFile: BimFileNodeRef, scene: SceneNodeRef, options?: SceneOptions[]): Promise<{
+        bimFileId: string;
+        model: Model;
+    }>;
+    loadModelFromNode(nodeId: string): Promise<{
+        bimFileId: string;
+        model: Model;
+    }[]>;
+    getNormalisePath(path: string): string;
     /**
      * return the model associated to the bimfile
      * @param bimFileId
      * @param dbId
      */
-    getModel(bimObject: any): Autodesk.Viewing.Model;
-    loadModelFromBimFile(bimFile: any): Promise<unknown>;
+    getModel(bimObject: BimObjectRef): Model;
+    loadModelFromBimFile(bimFile: BimFileNodeRef): Promise<{
+        model: Model;
+    }>;
     private addMaterial;
-    setModelColorMaterial(model: any, color: THREE.Color, ids: number[]): void;
+    setModelColorMaterial(model: Model, color: THREE.Color, ids: number[]): void;
     setColorMaterial(aggregateSelection: {
-        model: any;
+        model: Model;
         selection: number[];
-    }[], color: any): void;
+    }[], color: THREE.Color): void;
     restoreColorMaterial(aggregateSelection: {
-        model: any;
+        model: Model;
         selection: number[];
     }[]): void;
-    restoreModelColorMaterial(model: any, ids: any): void;
+    restoreModelColorMaterial(model: Model, ids: number[]): void;
 }

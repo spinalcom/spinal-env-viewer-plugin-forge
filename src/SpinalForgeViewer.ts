@@ -1,9 +1,41 @@
-import { SpinalGraphService } from "spinal-env-viewer-graph-service";
+/*
+ * Copyright 2020 SpinalCom - www.spinalcom.com
+ * 
+ * This file is part of SpinalCore.
+ * 
+ * Please read all of the following terms and conditions
+ * of the Free Software license Agreement ("Agreement")
+ * carefully.
+ * 
+ * This Agreement is a legally binding contract between
+ * the Licensee (as defined below) and SpinalCom that
+ * sets forth the terms and conditions that govern your
+ * use of the Program. By installing and/or using the
+ * Program, you agree to abide by all the terms and
+ * conditions stated or referenced herein.
+ * 
+ * If you do not agree to abide by these terms and
+ * conditions, do not demonstrate your acceptance and do
+ * not install or use the Program.
+ * You should have received a copy of the license along
+ * with this file. If not, see
+ * <http://resources.spinalcom.com/licenses.pdf>.
+ */
+
+import { SpinalGraphService, SpinalNodeRef, SpinalNodePointer } from "spinal-env-viewer-graph-service";
 import { BimObjectService } from "./BimObjectService";
 import { SCENE_TYPE } from "./Constants";
 
 import { loadModelPtr } from "./utils";
 import { SceneHelper } from "./SceneHelper";
+import Model = Autodesk.Viewing.Model;
+import {
+  BimFileNodeRef,
+  SceneNodeRef,
+  SceneOptions,
+  SceneOptionsGet,
+  BimObjectRef,
+} from './interfaces'
 
 export class SpinalForgeViewer {
 
@@ -13,8 +45,9 @@ export class SpinalForgeViewer {
   public bimObjectService: BimObjectService = new BimObjectService();
   public viewerManager: any;
   private overlayName = "spinal-material-overlay"
+  private option: SceneOptionsGet = null;
 
-  initialize(viewerManager) {
+  initialize(viewerManager): Promise<boolean> {
     if (typeof this.initialized === "undefined")
       this.initialized = new Promise(resolve => {
         this.viewerManager = viewerManager;
@@ -25,7 +58,6 @@ export class SpinalForgeViewer {
               this.viewerManager.setCurrentModel(event.selections[0].model);
               this.bimObjectService.setCurrentModel(event.selections[0].model);
             }
-
           });
         resolve(true);
       });
@@ -33,7 +65,7 @@ export class SpinalForgeViewer {
     return this.initialized;
   }
 
-  isInitialize() {
+  isInitialize(): boolean {
     return typeof this.initialized !== "undefined";
   }
 
@@ -42,100 +74,94 @@ export class SpinalForgeViewer {
       const interval = setInterval(() => {
         if (typeof this.initialized !== "undefined") {
           clearInterval(interval);
-          resolve(true);
+          this.initialized.then(() => resolve(true))
         }
       }, 200)
     })
   }
 
-  getScene(modelId: number) {
+  getScene(modelId: number): { sceneId: string; modelIds: number[]; }[] {
     return this.scenes.filter((scene) => {
       return scene.modelIds.indexOf(modelId) !== -1
     })
   };
-
-  getSVF(element: any, nodeId: string, name: string) {
-    return loadModelPtr(element.ptr)
-      .then(elem => {
-          return loadModelPtr(elem.currentVersion)
+  async getSVF(element: SpinalNodePointer<any>, nodeId: string, name: string): Promise<{
+    version: any; path: string; id: string; name: string; thumbnail: any;
+  }> {
+    const elem1 = await loadModelPtr(element.ptr)
+    const elem = await loadModelPtr(elem1.currentVersion)
+    if (elem.hasOwnProperty('items'))
+      for (let i = 0; i < elem.items.length; i++)
+        if (elem.items[i].path.get().indexOf('svf') !== -1) {
+          const thumbnail = elem.items[i].thumbnail ? elem.items[i].thumbnail.get() :
+            elem.items[i].path.get() + '.png'
+          return {
+            version: elem.versionId,
+            path: elem.items[i].path.get(),
+            id: nodeId,
+            name,
+            thumbnail
+          };
         }
-      )
-      .then(elem => {
-          if (elem.hasOwnProperty('items'))
-            for (let i = 0; i < elem.items.length; i++)
-              if (elem.items[i].path.get().indexOf('svf') !== -1) {
-                return {
-                  version: elem.versionId,
-                  path: elem.items[i].path.get(),
-                  id: nodeId,
-                  name,
-                  thumbnail: elem.items[i].thumbnail ? elem.items[i].thumbnail.get() : elem.items[i].path.get() + '.png'
-                };
-              }
-          return undefined;
-        }
-      );
+    return undefined;
   }
 
-  loadBimFile(bimfIle: any, scene: any, options: any = []) {
-    return new Promise(resolve => {
-      this.getSVF(bimfIle.element, bimfIle.id, bimfIle.name)
-        .then((svfVersionFile) => {
-          let option;
-          for (let i = 0; i < options.length; i++) {
-            if (options[i].urn.get().includes(svfVersionFile.path) !== -1) {
-              option = options[i].get();
-              break;
-            }
-          }
-
-          if (typeof option === "undefined")
-            option = {};
-
-          else if ( option.hasOwnProperty('dbIds') && option.dbIds.length > 0)
-            option = {ids: option.dbIds};
-
-          const path = window.location.origin + svfVersionFile.path;
-
-          if (option.hasOwnProperty('loadOption') && option.loadOption.hasOwnProperty('globalOffset')) {
-            option['globalOffset'] = option.loadOption.globalOffset
-          }
-
-          this.viewerManager.loadModel(path, option)
-            .then(model => {
-              this.bimObjectService
-                .addModel(bimfIle.id, model, svfVersionFile.version, scene, bimfIle.name);
-              resolve({bimFileId: bimfIle.id, model})
-            })
-        })
-    })
+  async loadBimFile(bimFile: BimFileNodeRef, scene: SceneNodeRef, options: SceneOptions[] = []): Promise<{
+    bimFileId: string; model: Model;
+  }> {
+    // let option: SceneOptionsGet;
+    const svfVersionFile = await this.getSVF(bimFile.element, bimFile.id.get(), bimFile.name.get())
+    if (!this.option)
+      for (let i = 0; i < options.length; i++) {
+        if (options[i].urn.get().includes(svfVersionFile.path)) {
+          this.option = options[i].get();
+          break;
+        }
+      }
+    if (this.option === null)
+      this.option = {};
+    else if (this.option.hasOwnProperty('dbIds') && this.option.dbIds.length > 0)
+      this.option = { ids: this.option.dbIds };
+    const path = this.getNormalisePath(svfVersionFile.path)
+    if (this.option.hasOwnProperty('loadOption') &&
+      this.option.loadOption.hasOwnProperty('globalOffset')) {
+      this.option['globalOffset'] = this.option.loadOption.globalOffset
+    }
+    const model: Model = await this.viewerManager.loadModel(path, this.option)
+    this.bimObjectService.addModel(bimFile.id.get(), model, svfVersionFile.version,
+      scene, bimFile.name.get());
+    return { bimFileId: bimFile.id.get(), model }
   }
 
-  async loadModelFromNode(nodeId: string): Promise<any[]> {
-
+  async loadModelFromNode(nodeId: string): Promise<{
+    bimFileId: string; model: Model;
+  }[]> {
     try {
       const node = await SpinalGraphService.getNodeAsync(nodeId);
-
       if (node.type.get() === SCENE_TYPE) {
-        return SceneHelper.getBimFilesFromScene(nodeId)
-          .then((children: any) => {
-            const promises = [];
-            const option = typeof node.options !== "undefined" ? node.options : [];
-            for (let i = 0; i < children.length; i++) {
-              promises.push(this.loadBimFile(children[i], node, option));
-            }
-            return Promise.all(promises);
-
-          });
-      } else
-        return SceneHelper.getSceneFromNode(nodeId)
-          .then((scene: { id: string }) => {
-            if (typeof scene !== "undefined")
-              return this.loadModelFromNode(scene.id)
-          })
+        const scene = <SceneNodeRef>node;
+        const children = await SceneHelper.getBimFilesFromScene(nodeId)
+        const option = typeof node.options !== "undefined" ? node.options : [];
+        const promises = children.map(child => this.loadBimFile(child, scene, option))
+        return Promise.all(promises);
+      }
+      const scenes: SceneNodeRef[] = await SceneHelper.getSceneFromNode(nodeId)
+      const res = [];
+      for (const scene of scenes) {
+        const r = await this.loadModelFromNode(scene.id.get());
+        res.push.apply(res, r);
+      }
+      return res;
     } catch (e) {
       console.error(e);
     }
+  }
+
+  getNormalisePath(path: string) {
+    let res = path;
+    if (!/https?:\/\//.test(path))
+      res = window.location.origin + path;
+    return res;
   }
 
   /**
@@ -143,25 +169,19 @@ export class SpinalForgeViewer {
    * @param bimFileId
    * @param dbId
    */
-  getModel(bimObject: any ) {
+  getModel(bimObject: BimObjectRef): Model {
     return this.bimObjectService.getModel(bimObject.dbid.get(), bimObject.bimFileId.get());
   }
 
-  loadModelFromBimFile(bimFile: any){
-    return new Promise(resolve => {
-      this.getSVF(bimFile.element, bimFile.id, bimFile.name)
-        .then((svfVersionFile) => {
-          const path = window.location.origin + svfVersionFile.path;
-          this.viewerManager.loadModel(path, {})
-            .then(model => {
-              this.bimObjectService._addModel(bimFile.id.get(), model)
-              resolve({model})
-            })
-        })
-    })
+  async loadModelFromBimFile(bimFile: BimFileNodeRef): Promise<{ model: Model }> {
+    const svfVersionFile = await this.getSVF(bimFile.element, bimFile.id.get(), bimFile.name.get())
+    const path = this.getNormalisePath(svfVersionFile.path)
+    const model = await this.viewerManager.loadModel(path, {})
+    await this.bimObjectService._addModel(bimFile.id.get(), model)
+    return ({ model })
   }
 
-  private addMaterial(color) {
+  private addMaterial(color: THREE.Color) {
     // @ts-ignore
     const material = new THREE.MeshPhongMaterial({
       color: color
@@ -171,46 +191,35 @@ export class SpinalForgeViewer {
     return material;
   }
 
-  // @ts-ignore
-  setModelColorMaterial(model: any, color: THREE.Color, ids: number[]){
+  setModelColorMaterial(model: Model, color: THREE.Color, ids: number[]): void {
     var material = this.addMaterial(color);
-
-    for (var i=0; i<ids.length; i++) {
-
+    for (var i = 0; i < ids.length; i++) {
       var dbid = ids[i];
-
       //from dbid to node, to fragid
-      var it = this.viewerManager.viewer.model.getData().instanceTree;
-
-      it.enumNodeFragments(dbid,  (function(fragId){
-
-
+      var it = model.getData().instanceTree;
+      it.enumNodeFragments(dbid, (function (fragId) {
         var renderProxy = this.viewerManager.viewer.impl.getRenderProxy(model, fragId);
         // @ts-ignore
-        renderProxy.meshProxy = new THREE.Mesh(renderProxy.geometry, renderProxy.material);
-
+        renderProxy.meshProxy = new THREE.Mesh(renderProxy.geometry, material);
         renderProxy.meshProxy.matrix.copy(renderProxy.matrixWorld);
         renderProxy.meshProxy.matrixWorldNeedsUpdate = true;
         renderProxy.meshProxy.matrixAutoUpdate = false;
         renderProxy.meshProxy.frustumCulled = false;
-
         this.viewerManager.viewer.impl.addOverlay(this.overlayName, renderProxy.meshProxy);
         this.viewerManager.viewer.impl.invalidate(true);
-
       }).bind(this), false);
     }
-
   }
 
-  setColorMaterial(aggregateSelection: {model: any, selection: number[]}[], color: any) {
+  setColorMaterial(aggregateSelection: { model: Model, selection: number[] }[], color: THREE.Color): void {
     for (let i = 0; i < aggregateSelection.length; i++) {
       const model = aggregateSelection[i].model;
       const ids = aggregateSelection[i].selection;
-      this.setModelColorMaterial(model , color, ids)
+      this.setModelColorMaterial(model, color, ids)
     }
   }
 
-  restoreColorMaterial(aggregateSelection: {model: any, selection: number[]}[]){
+  restoreColorMaterial(aggregateSelection: { model: Model, selection: number[] }[]): void {
     for (let i = 0; i < aggregateSelection.length; i++) {
       const model = aggregateSelection[1].model;
       const ids = aggregateSelection[1].selection;
@@ -218,31 +227,22 @@ export class SpinalForgeViewer {
     }
   }
 
-  restoreModelColorMaterial(model, ids){
-    for (var i=0; i< ids.length; i++) {
-
+  restoreModelColorMaterial(model: Model, ids: number[]) {
+    for (var i = 0; i < ids.length; i++) {
       var dbid = ids[i];
-
-
       //from dbid to node, to fragid
       var it = model.getData().instanceTree;
 
       it.enumNodeFragments(dbid, function (fragId) {
-
-
         var renderProxy = this.viewerManager.viewer.impl.getRenderProxy(model, fragId);
-
-        if(renderProxy.meshProxy){
-
+        if (renderProxy.meshProxy) {
           //remove all overlays with same name
           this.viewerManager.viewer.impl.clearOverlay(this.overlayName);
           //viewer.impl.removeOverlay(overlayName, renderProxy.meshProxy);
           delete renderProxy.meshProxy;
-
           //refresh the scene
           this.viewerManager.viewer.impl.invalidate(true);
         }
-
       }, true);
     }
   }
