@@ -58,7 +58,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 var Constants_1 = require("./Constants");
 /**
@@ -159,7 +159,7 @@ var BimObjectService = /** @class */ (function () {
                             type: Constants_1.BIM_OBJECT_TYPE,
                             bimFileId: modelMeta.bimFileId,
                             version: modelMeta.version,
-                            externalId: externalId, dbid: dbid, name: name,
+                            externalId: externalId, dbid: dbid, name: name
                         }, undefined);
                         return [4 /*yield*/, this.getBimFileContext(modelMeta.bimFileId)];
                     case 3:
@@ -183,6 +183,7 @@ var BimObjectService = /** @class */ (function () {
                     case 9: return [3 /*break*/, 11];
                     case 10:
                         e_2 = _a.sent();
+                        console.error('createBIMObject', e_2);
                         throw e_2;
                     case 11: return [2 /*return*/];
                 }
@@ -229,7 +230,7 @@ var BimObjectService = /** @class */ (function () {
                     case 5: return [3 /*break*/, 7];
                     case 6:
                         e_3 = _a.sent();
-                        console.error(e_3);
+                        console.error('getBIMObject', e_3);
                         throw (e_3);
                     case 7: return [2 /*return*/];
                 }

@@ -22,7 +22,7 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 var constants_js_1 = require("spinal-env-viewer-context-geographic-service/build/constants.js");
 exports.SCENE_RELATION_NAME = 'hasScene';

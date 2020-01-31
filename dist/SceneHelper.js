@@ -58,7 +58,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 var Constants_1 = require("./Constants");
 var SceneHelper = /** @class */ (function () {
@@ -76,7 +76,7 @@ var SceneHelper = /** @class */ (function () {
                     SceneHelper.context = context;
                     SceneHelper.contextId = context.getId().get();
                     resolve(true);
-                }).catch(reject);
+                })["catch"](reject);
             }
             resolve(true);
         });

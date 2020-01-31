@@ -153,6 +153,7 @@ export class BimObjectService {
         }
       }
     } catch (e) {
+      console.error('createBIMObject', e);
       throw e;
     }
   }
@@ -184,7 +185,7 @@ export class BimObjectService {
       } else
         return (undefined);
     } catch (e) {
-      console.error(e);
+      console.error('getBIMObject', e);
       throw (e);
     }
   }
