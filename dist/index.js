@@ -25,15 +25,11 @@
 exports.__esModule = true;
 var SpinalForgeViewer_1 = require("./SpinalForgeViewer");
 exports.SpinalForgeViewer = SpinalForgeViewer_1.SpinalForgeViewer;
-// @ts-ignore
-if (typeof window.spinal === "undefined") {
-    // @ts-ignore
-    window.spinal = {};
+var g_win = typeof window === "undefined" ? global : window;
+if (typeof g_win.spinal === "undefined") {
+    g_win.spinal = {};
 }
-// @ts-ignore
-if (typeof window.spinal.SpinalForgeViewer === "undefined") {
-    // @ts-ignore
-    window.spinal.SpinalForgeViewer = new SpinalForgeViewer_1.SpinalForgeViewer();
-    // @ts-ignore
-    window.spinal.BimObjectService = window.spinal.SpinalForgeViewer.bimObjectService;
+if (typeof g_win.spinal.SpinalForgeViewer === "undefined") {
+    g_win.spinal.SpinalForgeViewer = new SpinalForgeViewer_1.SpinalForgeViewer();
+    g_win.spinal.BimObjectService = g_win.spinal.SpinalForgeViewer.bimObjectService;
 }

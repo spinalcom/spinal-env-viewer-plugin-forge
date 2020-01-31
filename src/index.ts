@@ -30,18 +30,16 @@ export {
   LoadOptions,
   GolbalOffset
 } from "./interfaces"
-// @ts-ignore
-if (typeof window.spinal === "undefined") {
-  // @ts-ignore
-  window.spinal = {};
+
+const g_win: any = typeof window === "undefined" ? global : window;
+
+if (typeof g_win.spinal === "undefined") {
+  g_win.spinal = {};
 }
 
-// @ts-ignore
-if (typeof window.spinal.SpinalForgeViewer === "undefined") {
-  // @ts-ignore
-  window.spinal.SpinalForgeViewer = new SpinalForgeViewer();
-  // @ts-ignore
-  window.spinal.BimObjectService = window.spinal.SpinalForgeViewer.bimObjectService;
+if (typeof g_win.spinal.SpinalForgeViewer === "undefined") {
+  g_win.spinal.SpinalForgeViewer = new SpinalForgeViewer();
+  g_win.spinal.BimObjectService = g_win.spinal.SpinalForgeViewer.bimObjectService;
 }
 
 export { SpinalForgeViewer };
