@@ -339,7 +339,7 @@ export class BimObjectService {
         REFERENCE_OBJECT_RELATION_NAME, REFERENCE_OBJECT_RELATION_TYPE);
       return BIMObj;
     }
-    await SpinalGraphService.addChild(parentId, child.info.id.get(),
+    await SpinalGraphService.addChild(parentId, child.id.get(),
       REFERENCE_OBJECT_RELATION_NAME, REFERENCE_OBJECT_RELATION_TYPE)
     return child;
   }
