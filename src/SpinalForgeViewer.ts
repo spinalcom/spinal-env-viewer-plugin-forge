@@ -22,10 +22,9 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { SpinalGraphService, SpinalNodeRef, SpinalNodePointer } from "spinal-env-viewer-graph-service";
+import { SpinalGraphService, SpinalNodePointer } from "spinal-env-viewer-graph-service";
 import { BimObjectService } from "./BimObjectService";
 import { SCENE_TYPE } from "./Constants";
-
 import { loadModelPtr } from "./utils";
 import { SceneHelper } from "./SceneHelper";
 import Model = Autodesk.Viewing.Model;
@@ -85,13 +84,70 @@ export class SpinalForgeViewer {
       return scene.modelIds.indexOf(modelId) !== -1
     })
   };
+
+  async getSVFListFromBimFile(bimFileId: string): Promise<{ path: string, name: string, thumbnail: string }[]> {
+    const bimFileRNode = SpinalGraphService.getRealNode(bimFileId);
+    const elem1 = await loadModelPtr(bimFileRNode.element.ptr)
+    const elem = await loadModelPtr(elem1.currentVersion)
+    const res = []
+    if (elem.hasOwnProperty('items')) {
+      for (let i = 0; i < elem.items.length; i++) {
+        if (elem.items[i].path.get().indexOf('svf') !== -1) {
+          const thumbnail = elem.items[i].thumbnail ? elem.items[i].thumbnail.get() : elem.items[i].path.get() + '.png'
+          res.push({
+            path: elem.items[i].path.get(),
+            name: elem.items[i].name.get(),
+            thumbnail
+          });
+        }
+      }
+    }
+    return res
+  }
+  getBimFileDefautPath(bimFileId: string) {
+    const bimFileRNode = SpinalGraphService.getRealNode(bimFileId);
+    if (bimFileRNode && bimFileRNode.info.defaultItem) {
+      return bimFileRNode.info.defaultItem.get()
+    }
+  }
+  setBimFileDefautPath(bimFileId: string, path) {
+    const bimFileRNode = SpinalGraphService.getRealNode(bimFileId);
+    if (bimFileRNode) {
+      if (bimFileRNode.info.defaultItem) {
+        return bimFileRNode.info.defaultItem.set(path)
+      } else {
+        return bimFileRNode.info.add_attr("defaultItem", path)
+      }
+    }
+  }
+
+
   async getSVF(element: SpinalNodePointer<any>, nodeId: string, name: string): Promise<{
     version: any; path: string; id: string; name: string; thumbnail: any;
   }> {
     const elem1 = await loadModelPtr(element.ptr)
     const elem = await loadModelPtr(elem1.currentVersion)
-    if (elem.hasOwnProperty('items'))
-      for (let i = 0; i < elem.items.length; i++)
+    if (elem.hasOwnProperty('items')) {
+      // 1ere passe pour default path
+      const bimFileRNode = SpinalGraphService.getRealNode(nodeId);
+      if (bimFileRNode && bimFileRNode.info.defaultItem) {
+        const defaultPath = bimFileRNode.info.defaultItem.get()
+        for (let i = 0; i < elem.items.length; i++) {
+          if (elem.items[i].path.get().indexOf('svf') !== -1 && defaultPath === elem.items[i].path.get()) {
+            const thumbnail = elem.items[i].thumbnail ? elem.items[i].thumbnail.get() :
+              elem.items[i].path.get() + '.png'
+            return {
+              version: elem.versionId,
+              path: elem.items[i].path.get(),
+              id: nodeId,
+              name,
+              thumbnail
+            };
+          }
+        }
+      }
+
+      for (let i = 0; i < elem.items.length; i++) {
         if (elem.items[i].path.get().indexOf('svf') !== -1) {
           const thumbnail = elem.items[i].thumbnail ? elem.items[i].thumbnail.get() :
             elem.items[i].path.get() + '.png'
@@ -103,6 +159,8 @@ export class SpinalForgeViewer {
             thumbnail
           };
         }
+      }
+    }
     return undefined;
   }
 

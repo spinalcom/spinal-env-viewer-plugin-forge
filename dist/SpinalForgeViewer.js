@@ -23,10 +23,11 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -104,9 +105,57 @@ var SpinalForgeViewer = /** @class */ (function () {
         });
     };
     ;
+    SpinalForgeViewer.prototype.getSVFListFromBimFile = function (bimFileId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var bimFileRNode, elem1, elem, res, i, thumbnail;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        bimFileRNode = spinal_env_viewer_graph_service_1.SpinalGraphService.getRealNode(bimFileId);
+                        return [4 /*yield*/, utils_1.loadModelPtr(bimFileRNode.element.ptr)];
+                    case 1:
+                        elem1 = _a.sent();
+                        return [4 /*yield*/, utils_1.loadModelPtr(elem1.currentVersion)];
+                    case 2:
+                        elem = _a.sent();
+                        res = [];
+                        if (elem.hasOwnProperty('items')) {
+                            for (i = 0; i < elem.items.length; i++) {
+                                if (elem.items[i].path.get().indexOf('svf') !== -1) {
+                                    thumbnail = elem.items[i].thumbnail ? elem.items[i].thumbnail.get() : elem.items[i].path.get() + '.png';
+                                    res.push({
+                                        path: elem.items[i].path.get(),
+                                        name: elem.items[i].name.get(),
+                                        thumbnail: thumbnail
+                                    });
+                                }
+                            }
+                        }
+                        return [2 /*return*/, res];
+                }
+            });
+        });
+    };
+    SpinalForgeViewer.prototype.getBimFileDefautPath = function (bimFileId) {
+        var bimFileRNode = spinal_env_viewer_graph_service_1.SpinalGraphService.getRealNode(bimFileId);
+        if (bimFileRNode && bimFileRNode.info.defaultItem) {
+            return bimFileRNode.info.defaultItem.get();
+        }
+    };
+    SpinalForgeViewer.prototype.setBimFileDefautPath = function (bimFileId, path) {
+        var bimFileRNode = spinal_env_viewer_graph_service_1.SpinalGraphService.getRealNode(bimFileId);
+        if (bimFileRNode) {
+            if (bimFileRNode.info.defaultItem) {
+                return bimFileRNode.info.defaultItem.set(path);
+            }
+            else {
+                return bimFileRNode.info.add_attr("defaultItem", path);
+            }
+        }
+    };
     SpinalForgeViewer.prototype.getSVF = function (element, nodeId, name) {
         return __awaiter(this, void 0, void 0, function () {
-            var elem1, elem, i, thumbnail;
+            var elem1, elem, bimFileRNode, defaultPath, i, thumbnail, i, thumbnail;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, utils_1.loadModelPtr(element.ptr)];
@@ -115,8 +164,25 @@ var SpinalForgeViewer = /** @class */ (function () {
                         return [4 /*yield*/, utils_1.loadModelPtr(elem1.currentVersion)];
                     case 2:
                         elem = _a.sent();
-                        if (elem.hasOwnProperty('items'))
-                            for (i = 0; i < elem.items.length; i++)
+                        if (elem.hasOwnProperty('items')) {
+                            bimFileRNode = spinal_env_viewer_graph_service_1.SpinalGraphService.getRealNode(nodeId);
+                            if (bimFileRNode && bimFileRNode.info.defaultItem) {
+                                defaultPath = bimFileRNode.info.defaultItem.get();
+                                for (i = 0; i < elem.items.length; i++) {
+                                    if (elem.items[i].path.get().indexOf('svf') !== -1 && defaultPath === elem.items[i].path.get()) {
+                                        thumbnail = elem.items[i].thumbnail ? elem.items[i].thumbnail.get() :
+                                            elem.items[i].path.get() + '.png';
+                                        return [2 /*return*/, {
+                                                version: elem.versionId,
+                                                path: elem.items[i].path.get(),
+                                                id: nodeId,
+                                                name: name,
+                                                thumbnail: thumbnail
+                                            }];
+                                    }
+                                }
+                            }
+                            for (i = 0; i < elem.items.length; i++) {
                                 if (elem.items[i].path.get().indexOf('svf') !== -1) {
                                     thumbnail = elem.items[i].thumbnail ? elem.items[i].thumbnail.get() :
                                         elem.items[i].path.get() + '.png';
@@ -128,6 +194,8 @@ var SpinalForgeViewer = /** @class */ (function () {
                                             thumbnail: thumbnail
                                         }];
                                 }
+                            }
+                        }
                         return [2 /*return*/, undefined];
                 }
             });

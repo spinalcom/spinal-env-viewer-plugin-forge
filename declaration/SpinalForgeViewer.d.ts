@@ -21,6 +21,13 @@ export declare class SpinalForgeViewer {
         sceneId: string;
         modelIds: number[];
     }[];
+    getSVFListFromBimFile(bimFileId: string): Promise<{
+        path: string;
+        name: string;
+        thumbnail: string;
+    }[]>;
+    getBimFileDefautPath(bimFileId: string): any;
+    setBimFileDefautPath(bimFileId: string, path: any): any;
     getSVF(element: SpinalNodePointer<any>, nodeId: string, name: string): Promise<{
         version: any;
         path: string;
