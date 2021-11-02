@@ -33,7 +33,7 @@ import {
   SCENE_RELATION_NAME,
   SCENE_RELATION_TYPE, SCENE_TYPE
 } from "./Constants";
-import { SceneNodeRef } from "./interfaces";
+import { SceneNodeRef } from "./interfaces/interfaces";
 
 export interface Scene {
   id?: string;

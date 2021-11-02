@@ -1,7 +1,7 @@
 /// <reference types="forge-viewer" />
 import { SpinalNodeRef } from "spinal-env-viewer-graph-service";
 import Model = Autodesk.Viewing.Model;
-import { BimObjectRef, SceneNodeRef } from './interfaces';
+import { BimObjectRef, SceneNodeRef } from './interfaces/interfaces';
 /**
  * @export
  * @class BimObjectService
@@ -169,7 +169,7 @@ export declare class BimObjectService {
      * @param name
      */
     addModel(bimFileId: string, model: Model, version: number, scene: SceneNodeRef, name: string): void;
-    _addModel(bimFileId: string, model: Model): void;
+    _addModel(bimFileId: string, model: Model, name: string): void;
     /**
      * Get the model corresponding to the dbid and the bimfile
      * @param dbId {number} dbId of the BIMObject

@@ -42,7 +42,7 @@ interface modelScene {
   scene: any
 }
 
-import { BimObjectRef, SceneNodeRef } from './interfaces'
+import { BimObjectRef, SceneNodeRef } from './interfaces/interfaces'
 
 /**
  * @export
@@ -382,7 +382,7 @@ export class BimObjectService {
     this.mappingBimFileIdModelId[bimFileId] = mapping;
   }
 
-  _addModel(bimFileId: string, model: Model): void {
+  _addModel(bimFileId: string, model: Model, name: string): void {
     // @ts-ignore
     const modelId: number = model.id;
 

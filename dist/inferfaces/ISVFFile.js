@@ -1,6 +1,6 @@
 "use strict";
 /*
- * Copyright 2020 SpinalCom - www.spinalcom.com
+ * Copyright 2021 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
@@ -23,14 +23,3 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 exports.__esModule = true;
-exports.SpinalForgeViewer = void 0;
-var SpinalForgeViewer_1 = require("./SpinalForgeViewer");
-exports.SpinalForgeViewer = SpinalForgeViewer_1.SpinalForgeViewer;
-var g_win = typeof window === "undefined" ? global : window;
-if (typeof g_win.spinal === "undefined") {
-    g_win.spinal = {};
-}
-if (typeof g_win.spinal.SpinalForgeViewer === "undefined") {
-    g_win.spinal.SpinalForgeViewer = new SpinalForgeViewer_1.SpinalForgeViewer();
-    g_win.spinal.BimObjectService = g_win.spinal.SpinalForgeViewer.bimObjectService;
-}

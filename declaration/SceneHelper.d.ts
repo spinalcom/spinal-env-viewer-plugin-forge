@@ -1,5 +1,5 @@
 import { SpinalNode } from "spinal-env-viewer-graph-service";
-import { SceneNodeRef } from "./interfaces";
+import { SceneNodeRef } from "./interfaces/interfaces";
 export interface Scene {
     id?: string;
     name: string;

@@ -36,6 +36,7 @@ export interface SceneNodeRef extends SpinalNodeRef {
   description: spinal.Str;
   autoLoad: spinal.Str;
   useAllDT: spinal.Str;
+  sceneAlignMethod?: spinal.Val;
   options: SceneOptions[];
 }
 export interface SceneOptions extends spinal.Model {
@@ -71,6 +72,9 @@ export interface SceneOptionsGet {
   loadOption?: ILoadOption;
   dbIds?: number[];
   ids?: number[];
+  modelNameOverride?: string;
+  applyRefPoint?
+  globalOffset?: IGlobalOffset | THREE.Vector3
 }
 interface ILoadOption {
   globalOffset: IGlobalOffset;
@@ -79,4 +83,10 @@ interface IGlobalOffset {
   x: number;
   y: number;
   z: number;
+}
+
+export interface ILoadTask {
+  child: SceneNodeRef;
+  scene: SceneNodeRef;
+  option: any;
 }

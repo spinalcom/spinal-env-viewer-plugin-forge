@@ -34,7 +34,13 @@ import {
   SceneOptions,
   SceneOptionsGet,
   BimObjectRef,
-} from './interfaces'
+} from './interfaces/interfaces'
+import Axios from "axios";
+import { IAecData } from "./interfaces/IAecData";
+import { ISVFFile } from "./interfaces/ISVFFile";
+import { SceneAlignMethod } from "./interfaces/SceneAlignMethod";
+import { ILoadTask } from "./interfaces/interfaces";
+var THREE = require("three");
 
 export class SpinalForgeViewer {
 
@@ -44,7 +50,8 @@ export class SpinalForgeViewer {
   public bimObjectService: BimObjectService = new BimObjectService();
   public viewerManager: any;
   private overlayName = "spinal-material-overlay"
-  private option: SceneOptionsGet = null;
+  // private option: SceneOptionsGet = null;
+  private globalOffset: THREE.Vector3;
 
   initialize(viewerManager): Promise<boolean> {
     if (typeof this.initialized === "undefined")
@@ -104,7 +111,7 @@ export class SpinalForgeViewer {
     }
     return res
   }
-  getBimFileDefautPath(bimFileId: string) {
+  getBimFileDefautPath(bimFileId: string): any {
     const bimFileRNode = SpinalGraphService.getRealNode(bimFileId);
     if (bimFileRNode && bimFileRNode.info.defaultItem) {
       return bimFileRNode.info.defaultItem.get()
@@ -122,9 +129,7 @@ export class SpinalForgeViewer {
   }
 
 
-  async getSVF(element: SpinalNodePointer<any>, nodeId: string, name: string): Promise<{
-    version: any; path: string; id: string; name: string; thumbnail: any;
-  }> {
+  async getSVF(element: SpinalNodePointer<any>, nodeId: string, name: string): Promise<ISVFFile> {
     const elem1 = await loadModelPtr(element.ptr)
     const elem = await loadModelPtr(elem1.currentVersion)
     if (elem.hasOwnProperty('items')) {
@@ -141,7 +146,8 @@ export class SpinalForgeViewer {
               path: elem.items[i].path.get(),
               id: nodeId,
               name,
-              thumbnail
+              thumbnail,
+              aecPath: elem.aecPath?.get()
             };
           }
         }
@@ -156,40 +162,105 @@ export class SpinalForgeViewer {
             path: elem.items[i].path.get(),
             id: nodeId,
             name,
-            thumbnail
+            thumbnail,
+            aecPath: elem.aecPath?.get()
           };
         }
       }
     }
     return undefined;
   }
+  getAecModelData(aecPath: string): Promise<IAecData> {
+    return Axios.get(aecPath).then(function (a) { return a.data; });
+  }
+  get1stGlobalOffset(): THREE.Vector3 {
+    if (!this.globalOffset) {
+      this.globalOffset = this.viewerManager.viewer.model?.getData().globalOffset
+    }
+    return this.globalOffset;
+  }
+  async addOffsetFromAEC(aecPath: string): Promise<THREE.Vector3> {
+    const globalOffset = this.get1stGlobalOffset();
+    const aecModelData = await this.getAecModelData(aecPath)
+    if (aecModelData) {
+      const tf = aecModelData && aecModelData.refPointTransformation;
+      const refPoint = tf ? { x: tf[9], y: tf[10], z: 0 } : { x: 0, y: 0, z: 0 };
+      const MaxDistSqr = 4.0e6;
+      const distSqr = globalOffset && THREE.Vector3.prototype.distanceToSquared.call(refPoint, globalOffset);
+      if (!globalOffset || distSqr > MaxDistSqr) {
+        // @ts-ignore
+        return new THREE.Vector3().copy(refPoint);
+      }
+    }
+    return globalOffset;
+  };
+  getOption(options: SceneOptions[], svfVersionFile: ISVFFile): SceneOptionsGet {
+    for (var i = 0; i < options.length; i++) {
+      if (options[i].urn.get().includes(svfVersionFile.path)) {
+        var opt: SceneOptionsGet = options[i].get();
+        opt.modelNameOverride = svfVersionFile.name;
+        return opt;
+      }
+    }
+    return {
+      modelNameOverride: svfVersionFile.name
+    };
+  };
+  addDbIdToOption(option: SceneOptionsGet): void {
+    if (option.hasOwnProperty('dbIds') && option.dbIds.length > 0) {
+      option.ids = option.dbIds;
+    }
+  }
 
   async loadBimFile(bimFile: BimFileNodeRef, scene: SceneNodeRef, options: SceneOptions[] = []): Promise<{
     bimFileId: string; model: Model;
   }> {
-    // let option: SceneOptionsGet;
+    const is1stModel = !this.viewerManager.viewer.model;
     const svfVersionFile = await this.getSVF(bimFile.element, bimFile.id.get(), bimFile.name.get())
-    if (!this.option)
-      for (let i = 0; i < options.length; i++) {
-        if (options[i].urn.get().includes(svfVersionFile.path)) {
-          this.option = options[i].get();
-          break;
-        }
+    let option = null;
+    if (typeof scene.sceneAlignMethod === "undefined") {
+      // old scene handle
+      option = this.getOption(options, svfVersionFile);
+      if (option.loadOption.hasOwnProperty('globalOffset')) {
+        if (!this.globalOffset)
+          this.globalOffset = option.loadOption.globalOffset;
+        option.globalOffset = this.globalOffset;
       }
-    if (this.option === null)
-      this.option = {};
-    else if (this.option.hasOwnProperty('dbIds') && this.option.dbIds.length > 0)
-      this.option = { ids: this.option.dbIds };
-    const path = this.getNormalisePath(svfVersionFile.path)
-    if (this.option.hasOwnProperty('loadOption') &&
-      this.option.loadOption.hasOwnProperty('globalOffset')) {
-      this.option['globalOffset'] = this.option.loadOption.globalOffset
+    } else {
+      option = this.getOption(options, svfVersionFile);
+      if (scene.sceneAlignMethod.get() === SceneAlignMethod.OriginToOrigin) {
+        option.globalOffset = this.get1stGlobalOffset();
+      } else if (scene.sceneAlignMethod.get() === SceneAlignMethod.ShareCoordinates
+        && svfVersionFile.aecPath) {
+        option.applyRefPoint = true;
+        option.globalOffset = await this.addOffsetFromAEC(svfVersionFile.aecPath);
+      }
     }
-    const model: Model = await this.viewerManager.loadModel(path, this.option)
-    this.bimObjectService.addModel(bimFile.id.get(), model, svfVersionFile.version,
-      scene, bimFile.name.get());
-    return { bimFileId: bimFile.id.get(), model }
+    this.addDbIdToOption(option);
+    const path = this.getNormalisePath(svfVersionFile.path);
+    const model = await this.viewerManager.loadModel(path, option, is1stModel)
+    this.bimObjectService.addModel(bimFile.id.get(), model, svfVersionFile.version, scene, bimFile.name.get());
+    return { bimFileId: bimFile.id.get(), model: model };
   }
+
+  async load1stThenAll<T, K>(tasks: T[], callback: (itm: T) => Promise<K>): Promise<K[]> {
+    const results: K[] = [];
+    let idx = 0;
+    if (tasks.length > 0 && !this.viewerManager.viewer.model) {
+      idx = 1;
+      await callback(tasks[0]).then((res: K): void => {
+        results.push(res);
+      })
+    }
+    const proms = [];
+    for (; idx < tasks.length; idx++) {
+      proms.push(callback(tasks[idx]).then(function (res: K): void {
+        results.push(res);
+      }))
+    }
+    return Promise.all(proms).then(() => results);
+  }
+
 
   async loadModelFromNode(nodeId: string): Promise<{
     bimFileId: string; model: Model;
@@ -200,8 +271,10 @@ export class SpinalForgeViewer {
         const scene = <SceneNodeRef>node;
         const children = await SceneHelper.getBimFilesFromScene(nodeId)
         const option = typeof node.options !== "undefined" ? node.options : [];
-        const promises = children.map(child => this.loadBimFile(child, scene, option))
-        return Promise.all(promises);
+        const data = children.map((child: SceneNodeRef): ILoadTask => { return { child, scene, option }; });
+        this.load1stThenAll(data, ({ child, scene, option }: ILoadTask): Promise<{ bimFileId: string; model: Model; }> => {
+          return this.loadBimFile(child, scene, option);
+        });
       }
       const scenes: SceneNodeRef[] = await SceneHelper.getSceneFromNode(nodeId)
       const res = [];
@@ -235,7 +308,7 @@ export class SpinalForgeViewer {
     const svfVersionFile = await this.getSVF(bimFile.element, bimFile.id.get(), bimFile.name.get())
     const path = this.getNormalisePath(svfVersionFile.path)
     const model = await this.viewerManager.loadModel(path, {})
-    await this.bimObjectService._addModel(bimFile.id.get(), model)
+    await this.bimObjectService._addModel(bimFile.id.get(), model, svfVersionFile.name)
     return ({ model })
   }
 

@@ -29,7 +29,7 @@ export {
   SceneOptions,
   LoadOptions,
   GolbalOffset
-} from "./interfaces"
+} from "./interfaces/interfaces"
 
 const g_win: any = typeof window === "undefined" ? global : window;
 

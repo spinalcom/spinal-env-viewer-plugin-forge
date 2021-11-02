@@ -59,6 +59,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
+exports.BimObjectService = void 0;
 var spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 var Constants_1 = require("./Constants");
 /**
@@ -159,7 +160,9 @@ var BimObjectService = /** @class */ (function () {
                             type: Constants_1.BIM_OBJECT_TYPE,
                             bimFileId: modelMeta.bimFileId,
                             version: modelMeta.version,
-                            externalId: externalId, dbid: dbid, name: name
+                            externalId: externalId,
+                            dbid: dbid,
+                            name: name
                         }, undefined);
                         return [4 /*yield*/, this.getBimFileContext(modelMeta.bimFileId)];
                     case 3:
@@ -470,7 +473,7 @@ var BimObjectService = /** @class */ (function () {
             mapping.modelScene.push({ model: model, scene: scene });
         this.mappingBimFileIdModelId[bimFileId] = mapping;
     };
-    BimObjectService.prototype._addModel = function (bimFileId, model) {
+    BimObjectService.prototype._addModel = function (bimFileId, model, name) {
         // @ts-ignore
         var modelId = model.id;
         this.mappingModelIdBimFileId[modelId] = { bimFileId: bimFileId, version: 0, scene: undefined };

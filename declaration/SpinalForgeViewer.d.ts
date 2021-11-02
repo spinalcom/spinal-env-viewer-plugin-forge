@@ -2,7 +2,9 @@
 import { SpinalNodePointer } from "spinal-env-viewer-graph-service";
 import { BimObjectService } from "./BimObjectService";
 import Model = Autodesk.Viewing.Model;
-import { BimFileNodeRef, SceneNodeRef, SceneOptions, BimObjectRef } from './interfaces';
+import { BimFileNodeRef, SceneNodeRef, SceneOptions, SceneOptionsGet, BimObjectRef } from './interfaces/interfaces';
+import { IAecData } from "./interfaces/IAecData";
+import { ISVFFile } from "./interfaces/ISVFFile";
 export declare class SpinalForgeViewer {
     currentSceneId: string;
     initialized: Promise<boolean>;
@@ -13,7 +15,7 @@ export declare class SpinalForgeViewer {
     bimObjectService: BimObjectService;
     viewerManager: any;
     private overlayName;
-    private option;
+    private globalOffset;
     initialize(viewerManager: any): Promise<boolean>;
     isInitialize(): boolean;
     waitForInitialization(): Promise<unknown>;
@@ -28,17 +30,17 @@ export declare class SpinalForgeViewer {
     }[]>;
     getBimFileDefautPath(bimFileId: string): any;
     setBimFileDefautPath(bimFileId: string, path: any): any;
-    getSVF(element: SpinalNodePointer<any>, nodeId: string, name: string): Promise<{
-        version: any;
-        path: string;
-        id: string;
-        name: string;
-        thumbnail: any;
-    }>;
+    getSVF(element: SpinalNodePointer<any>, nodeId: string, name: string): Promise<ISVFFile>;
+    getAecModelData(aecPath: string): Promise<IAecData>;
+    get1stGlobalOffset(): THREE.Vector3;
+    addOffsetFromAEC(aecPath: string): Promise<THREE.Vector3>;
+    getOption(options: SceneOptions[], svfVersionFile: ISVFFile): SceneOptionsGet;
+    addDbIdToOption(option: SceneOptionsGet): void;
     loadBimFile(bimFile: BimFileNodeRef, scene: SceneNodeRef, options?: SceneOptions[]): Promise<{
         bimFileId: string;
         model: Model;
     }>;
+    load1stThenAll<T, K>(tasks: T[], callback: (itm: T) => Promise<K>): Promise<K[]>;
     loadModelFromNode(nodeId: string): Promise<{
         bimFileId: string;
         model: Model;

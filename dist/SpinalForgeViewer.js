@@ -59,16 +59,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
+exports.SpinalForgeViewer = void 0;
 var spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
 var BimObjectService_1 = require("./BimObjectService");
 var Constants_1 = require("./Constants");
 var utils_1 = require("./utils");
 var SceneHelper_1 = require("./SceneHelper");
+var axios_1 = require("axios");
+var SceneAlignMethod_1 = require("./interfaces/SceneAlignMethod");
+var THREE = require("three");
 var SpinalForgeViewer = /** @class */ (function () {
     function SpinalForgeViewer() {
         this.bimObjectService = new BimObjectService_1.BimObjectService();
         this.overlayName = "spinal-material-overlay";
-        this.option = null;
     }
     SpinalForgeViewer.prototype.initialize = function (viewerManager) {
         var _this = this;
@@ -112,10 +115,10 @@ var SpinalForgeViewer = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         bimFileRNode = spinal_env_viewer_graph_service_1.SpinalGraphService.getRealNode(bimFileId);
-                        return [4 /*yield*/, utils_1.loadModelPtr(bimFileRNode.element.ptr)];
+                        return [4 /*yield*/, (0, utils_1.loadModelPtr)(bimFileRNode.element.ptr)];
                     case 1:
                         elem1 = _a.sent();
-                        return [4 /*yield*/, utils_1.loadModelPtr(elem1.currentVersion)];
+                        return [4 /*yield*/, (0, utils_1.loadModelPtr)(elem1.currentVersion)];
                     case 2:
                         elem = _a.sent();
                         res = [];
@@ -154,16 +157,17 @@ var SpinalForgeViewer = /** @class */ (function () {
         }
     };
     SpinalForgeViewer.prototype.getSVF = function (element, nodeId, name) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
             var elem1, elem, bimFileRNode, defaultPath, i, thumbnail, i, thumbnail;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, utils_1.loadModelPtr(element.ptr)];
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0: return [4 /*yield*/, (0, utils_1.loadModelPtr)(element.ptr)];
                     case 1:
-                        elem1 = _a.sent();
-                        return [4 /*yield*/, utils_1.loadModelPtr(elem1.currentVersion)];
+                        elem1 = _c.sent();
+                        return [4 /*yield*/, (0, utils_1.loadModelPtr)(elem1.currentVersion)];
                     case 2:
-                        elem = _a.sent();
+                        elem = _c.sent();
                         if (elem.hasOwnProperty('items')) {
                             bimFileRNode = spinal_env_viewer_graph_service_1.SpinalGraphService.getRealNode(nodeId);
                             if (bimFileRNode && bimFileRNode.info.defaultItem) {
@@ -177,7 +181,8 @@ var SpinalForgeViewer = /** @class */ (function () {
                                                 path: elem.items[i].path.get(),
                                                 id: nodeId,
                                                 name: name,
-                                                thumbnail: thumbnail
+                                                thumbnail: thumbnail,
+                                                aecPath: (_a = elem.aecPath) === null || _a === void 0 ? void 0 : _a.get()
                                             }];
                                     }
                                 }
@@ -191,7 +196,8 @@ var SpinalForgeViewer = /** @class */ (function () {
                                             path: elem.items[i].path.get(),
                                             id: nodeId,
                                             name: name,
-                                            thumbnail: thumbnail
+                                            thumbnail: thumbnail,
+                                            aecPath: (_b = elem.aecPath) === null || _b === void 0 ? void 0 : _b.get()
                                         }];
                                 }
                             }
@@ -201,43 +207,138 @@ var SpinalForgeViewer = /** @class */ (function () {
             });
         });
     };
+    SpinalForgeViewer.prototype.getAecModelData = function (aecPath) {
+        return axios_1["default"].get(aecPath).then(function (a) { return a.data; });
+    };
+    SpinalForgeViewer.prototype.get1stGlobalOffset = function () {
+        var _a;
+        if (!this.globalOffset) {
+            this.globalOffset = (_a = this.viewerManager.viewer.model) === null || _a === void 0 ? void 0 : _a.getData().globalOffset;
+        }
+        return this.globalOffset;
+    };
+    SpinalForgeViewer.prototype.addOffsetFromAEC = function (aecPath) {
+        return __awaiter(this, void 0, void 0, function () {
+            var globalOffset, aecModelData, tf, refPoint, MaxDistSqr, distSqr;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        globalOffset = this.get1stGlobalOffset();
+                        return [4 /*yield*/, this.getAecModelData(aecPath)];
+                    case 1:
+                        aecModelData = _a.sent();
+                        if (aecModelData) {
+                            tf = aecModelData && aecModelData.refPointTransformation;
+                            refPoint = tf ? { x: tf[9], y: tf[10], z: 0 } : { x: 0, y: 0, z: 0 };
+                            MaxDistSqr = 4.0e6;
+                            distSqr = globalOffset && THREE.Vector3.prototype.distanceToSquared.call(refPoint, globalOffset);
+                            if (!globalOffset || distSqr > MaxDistSqr) {
+                                // @ts-ignore
+                                return [2 /*return*/, new THREE.Vector3().copy(refPoint)];
+                            }
+                        }
+                        return [2 /*return*/, globalOffset];
+                }
+            });
+        });
+    };
+    ;
+    SpinalForgeViewer.prototype.getOption = function (options, svfVersionFile) {
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].urn.get().includes(svfVersionFile.path)) {
+                var opt = options[i].get();
+                opt.modelNameOverride = svfVersionFile.name;
+                return opt;
+            }
+        }
+        return {
+            modelNameOverride: svfVersionFile.name
+        };
+    };
+    ;
+    SpinalForgeViewer.prototype.addDbIdToOption = function (option) {
+        if (option.hasOwnProperty('dbIds') && option.dbIds.length > 0) {
+            option.ids = option.dbIds;
+        }
+    };
     SpinalForgeViewer.prototype.loadBimFile = function (bimFile, scene, options) {
         if (options === void 0) { options = []; }
         return __awaiter(this, void 0, void 0, function () {
-            var svfVersionFile, i, path, model;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.getSVF(bimFile.element, bimFile.id.get(), bimFile.name.get())];
+            var is1stModel, svfVersionFile, option, _a, path, model;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        is1stModel = !this.viewerManager.viewer.model;
+                        return [4 /*yield*/, this.getSVF(bimFile.element, bimFile.id.get(), bimFile.name.get())];
                     case 1:
-                        svfVersionFile = _a.sent();
-                        if (!this.option)
-                            for (i = 0; i < options.length; i++) {
-                                if (options[i].urn.get().includes(svfVersionFile.path)) {
-                                    this.option = options[i].get();
-                                    break;
-                                }
-                            }
-                        if (this.option === null)
-                            this.option = {};
-                        else if (this.option.hasOwnProperty('dbIds') && this.option.dbIds.length > 0)
-                            this.option = { ids: this.option.dbIds };
-                        path = this.getNormalisePath(svfVersionFile.path);
-                        if (this.option.hasOwnProperty('loadOption') &&
-                            this.option.loadOption.hasOwnProperty('globalOffset')) {
-                            this.option['globalOffset'] = this.option.loadOption.globalOffset;
+                        svfVersionFile = _b.sent();
+                        option = null;
+                        if (!(typeof scene.sceneAlignMethod === "undefined")) return [3 /*break*/, 2];
+                        // old scene handle
+                        option = this.getOption(options, svfVersionFile);
+                        if (option.loadOption.hasOwnProperty('globalOffset')) {
+                            if (!this.globalOffset)
+                                this.globalOffset = option.loadOption.globalOffset;
+                            option.globalOffset = this.globalOffset;
                         }
-                        return [4 /*yield*/, this.viewerManager.loadModel(path, this.option)];
+                        return [3 /*break*/, 5];
                     case 2:
-                        model = _a.sent();
+                        option = this.getOption(options, svfVersionFile);
+                        if (!(scene.sceneAlignMethod.get() === SceneAlignMethod_1.SceneAlignMethod.OriginToOrigin)) return [3 /*break*/, 3];
+                        option.globalOffset = this.get1stGlobalOffset();
+                        return [3 /*break*/, 5];
+                    case 3:
+                        if (!(scene.sceneAlignMethod.get() === SceneAlignMethod_1.SceneAlignMethod.ShareCoordinates
+                            && svfVersionFile.aecPath)) return [3 /*break*/, 5];
+                        option.applyRefPoint = true;
+                        _a = option;
+                        return [4 /*yield*/, this.addOffsetFromAEC(svfVersionFile.aecPath)];
+                    case 4:
+                        _a.globalOffset = _b.sent();
+                        _b.label = 5;
+                    case 5:
+                        this.addDbIdToOption(option);
+                        path = this.getNormalisePath(svfVersionFile.path);
+                        return [4 /*yield*/, this.viewerManager.loadModel(path, option, is1stModel)];
+                    case 6:
+                        model = _b.sent();
                         this.bimObjectService.addModel(bimFile.id.get(), model, svfVersionFile.version, scene, bimFile.name.get());
                         return [2 /*return*/, { bimFileId: bimFile.id.get(), model: model }];
                 }
             });
         });
     };
+    SpinalForgeViewer.prototype.load1stThenAll = function (tasks, callback) {
+        return __awaiter(this, void 0, void 0, function () {
+            var results, idx, proms;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        results = [];
+                        idx = 0;
+                        if (!(tasks.length > 0 && !this.viewerManager.viewer.model)) return [3 /*break*/, 2];
+                        idx = 1;
+                        return [4 /*yield*/, callback(tasks[0]).then(function (res) {
+                                results.push(res);
+                            })];
+                    case 1:
+                        _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        proms = [];
+                        for (; idx < tasks.length; idx++) {
+                            proms.push(callback(tasks[idx]).then(function (res) {
+                                results.push(res);
+                            }));
+                        }
+                        return [2 /*return*/, Promise.all(proms).then(function () { return results; })];
+                }
+            });
+        });
+    };
     SpinalForgeViewer.prototype.loadModelFromNode = function (nodeId) {
         return __awaiter(this, void 0, void 0, function () {
-            var node, scene_1, children, option_1, promises, scenes, res, _i, scenes_1, scene, r, e_1;
+            var node, scene_1, children, option_1, data, scenes, res, _i, scenes_1, scene, r, e_1;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -252,8 +353,12 @@ var SpinalForgeViewer = /** @class */ (function () {
                     case 2:
                         children = _a.sent();
                         option_1 = typeof node.options !== "undefined" ? node.options : [];
-                        promises = children.map(function (child) { return _this.loadBimFile(child, scene_1, option_1); });
-                        return [2 /*return*/, Promise.all(promises)];
+                        data = children.map(function (child) { return { child: child, scene: scene_1, option: option_1 }; });
+                        this.load1stThenAll(data, function (_a) {
+                            var child = _a.child, scene = _a.scene, option = _a.option;
+                            return _this.loadBimFile(child, scene, option);
+                        });
+                        _a.label = 3;
                     case 3: return [4 /*yield*/, SceneHelper_1.SceneHelper.getSceneFromNode(nodeId)];
                     case 4:
                         scenes = _a.sent();
@@ -307,7 +412,7 @@ var SpinalForgeViewer = /** @class */ (function () {
                         return [4 /*yield*/, this.viewerManager.loadModel(path, {})];
                     case 2:
                         model = _a.sent();
-                        return [4 /*yield*/, this.bimObjectService._addModel(bimFile.id.get(), model)];
+                        return [4 /*yield*/, this.bimObjectService._addModel(bimFile.id.get(), model, svfVersionFile.name)];
                     case 3:
                         _a.sent();
                         return [2 /*return*/, ({ model: model })];

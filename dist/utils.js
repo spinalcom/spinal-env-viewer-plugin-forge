@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+exports.loadModelPtr = void 0;
 var spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
 var mapModelDictionary = new Map();
 function loadModelPtr(model) {
