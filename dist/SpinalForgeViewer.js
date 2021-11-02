@@ -354,11 +354,10 @@ var SpinalForgeViewer = /** @class */ (function () {
                         children = _a.sent();
                         option_1 = typeof node.options !== "undefined" ? node.options : [];
                         data = children.map(function (child) { return { child: child, scene: scene_1, option: option_1 }; });
-                        this.load1stThenAll(data, function (_a) {
-                            var child = _a.child, scene = _a.scene, option = _a.option;
-                            return _this.loadBimFile(child, scene, option);
-                        });
-                        _a.label = 3;
+                        return [2 /*return*/, this.load1stThenAll(data, function (_a) {
+                                var child = _a.child, scene = _a.scene, option = _a.option;
+                                return _this.loadBimFile(child, scene, option);
+                            })];
                     case 3: return [4 /*yield*/, SceneHelper_1.SceneHelper.getSceneFromNode(nodeId)];
                     case 4:
                         scenes = _a.sent();

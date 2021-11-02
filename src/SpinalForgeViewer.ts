@@ -272,7 +272,7 @@ export class SpinalForgeViewer {
         const children = await SceneHelper.getBimFilesFromScene(nodeId)
         const option = typeof node.options !== "undefined" ? node.options : [];
         const data = children.map((child: SceneNodeRef): ILoadTask => { return { child, scene, option }; });
-        this.load1stThenAll(data, ({ child, scene, option }: ILoadTask): Promise<{ bimFileId: string; model: Model; }> => {
+        return this.load1stThenAll(data, ({ child, scene, option }: ILoadTask): Promise<{ bimFileId: string; model: Model; }> => {
           return this.loadBimFile(child, scene, option);
         });
       }
