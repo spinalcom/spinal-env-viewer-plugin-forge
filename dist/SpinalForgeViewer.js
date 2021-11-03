@@ -276,7 +276,7 @@ var SpinalForgeViewer = /** @class */ (function () {
                         if (!(typeof scene.sceneAlignMethod === "undefined")) return [3 /*break*/, 2];
                         // old scene handle
                         option = this.getOption(options, svfVersionFile);
-                        if (option.loadOption.hasOwnProperty('globalOffset')) {
+                        if (option.loadOption && option.loadOption.hasOwnProperty('globalOffset')) {
                             if (!this.globalOffset)
                                 this.globalOffset = option.loadOption.globalOffset;
                             option.globalOffset = this.globalOffset;
