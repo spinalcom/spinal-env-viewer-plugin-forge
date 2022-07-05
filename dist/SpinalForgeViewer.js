@@ -67,35 +67,40 @@ var utils_1 = require("./utils");
 var SceneHelper_1 = require("./SceneHelper");
 var axios_1 = require("axios");
 var SceneAlignMethod_1 = require("./interfaces/SceneAlignMethod");
-var THREE = require("three");
+var THREE = require('three');
 var SpinalForgeViewer = /** @class */ (function () {
     function SpinalForgeViewer() {
         this.bimObjectService = new BimObjectService_1.BimObjectService();
-        this.overlayName = "spinal-material-overlay";
+        this.overlayName = 'spinal-material-overlay';
     }
     SpinalForgeViewer.prototype.initialize = function (viewerManager) {
         var _this = this;
-        if (typeof this.initialized === "undefined")
+        if (typeof this.initialized === 'undefined')
             this.initialized = new Promise(function (resolve) {
                 _this.viewerManager = viewerManager;
-                _this.viewerManager.viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, function (event) {
-                    if (typeof event.selections !== "undefined" && event.selections.length > 0) {
-                        _this.viewerManager.setCurrentModel(event.selections[0].model);
-                        _this.bimObjectService.setCurrentModel(event.selections[0].model);
-                    }
-                });
-                resolve(true);
+                var addEventListen = function () {
+                    _this.viewerManager.viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, function (event) {
+                        if (typeof event.selections !== 'undefined' &&
+                            event.selections.length > 0) {
+                            _this.viewerManager.setCurrentModel(event.selections[0].model);
+                            _this.bimObjectService.setCurrentModel(event.selections[0].model);
+                        }
+                    });
+                    clearInterval(inter);
+                    resolve(true);
+                };
+                var inter = setInterval(addEventListen, 200);
             });
         return this.initialized;
     };
     SpinalForgeViewer.prototype.isInitialize = function () {
-        return typeof this.initialized !== "undefined";
+        return typeof this.initialized !== 'undefined';
     };
     SpinalForgeViewer.prototype.waitForInitialization = function () {
         var _this = this;
         return new Promise(function (resolve) {
             var interval = setInterval(function () {
-                if (typeof _this.initialized !== "undefined") {
+                if (typeof _this.initialized !== 'undefined') {
                     clearInterval(interval);
                     _this.initialized.then(function () { return resolve(true); });
                 }
@@ -107,7 +112,6 @@ var SpinalForgeViewer = /** @class */ (function () {
             return scene.modelIds.indexOf(modelId) !== -1;
         });
     };
-    ;
     SpinalForgeViewer.prototype.getSVFListFromBimFile = function (bimFileId) {
         return __awaiter(this, void 0, void 0, function () {
             var bimFileRNode, elem1, elem, res, i, thumbnail;
@@ -125,7 +129,9 @@ var SpinalForgeViewer = /** @class */ (function () {
                         if (elem.hasOwnProperty('items')) {
                             for (i = 0; i < elem.items.length; i++) {
                                 if (elem.items[i].path.get().indexOf('svf') !== -1) {
-                                    thumbnail = elem.items[i].thumbnail ? elem.items[i].thumbnail.get() : elem.items[i].path.get() + '.png';
+                                    thumbnail = elem.items[i].thumbnail
+                                        ? elem.items[i].thumbnail.get()
+                                        : elem.items[i].path.get() + '.png';
                                     res.push({
                                         path: elem.items[i].path.get(),
                                         name: elem.items[i].name.get(),
@@ -152,7 +158,7 @@ var SpinalForgeViewer = /** @class */ (function () {
                 return bimFileRNode.info.defaultItem.set(path);
             }
             else {
-                return bimFileRNode.info.add_attr("defaultItem", path);
+                return bimFileRNode.info.add_attr('defaultItem', path);
             }
         }
     };
@@ -173,9 +179,11 @@ var SpinalForgeViewer = /** @class */ (function () {
                             if (bimFileRNode && bimFileRNode.info.defaultItem) {
                                 defaultPath = bimFileRNode.info.defaultItem.get();
                                 for (i = 0; i < elem.items.length; i++) {
-                                    if (elem.items[i].path.get().indexOf('svf') !== -1 && defaultPath === elem.items[i].path.get()) {
-                                        thumbnail = elem.items[i].thumbnail ? elem.items[i].thumbnail.get() :
-                                            elem.items[i].path.get() + '.png';
+                                    if (elem.items[i].path.get().indexOf('svf') !== -1 &&
+                                        defaultPath === elem.items[i].path.get()) {
+                                        thumbnail = elem.items[i].thumbnail
+                                            ? elem.items[i].thumbnail.get()
+                                            : elem.items[i].path.get() + '.png';
                                         return [2 /*return*/, {
                                                 version: elem.versionId,
                                                 path: elem.items[i].path.get(),
@@ -189,8 +197,9 @@ var SpinalForgeViewer = /** @class */ (function () {
                             }
                             for (i = 0; i < elem.items.length; i++) {
                                 if (elem.items[i].path.get().indexOf('svf') !== -1) {
-                                    thumbnail = elem.items[i].thumbnail ? elem.items[i].thumbnail.get() :
-                                        elem.items[i].path.get() + '.png';
+                                    thumbnail = elem.items[i].thumbnail
+                                        ? elem.items[i].thumbnail.get()
+                                        : elem.items[i].path.get() + '.png';
                                     return [2 /*return*/, {
                                             version: elem.versionId,
                                             path: elem.items[i].path.get(),
@@ -208,12 +217,15 @@ var SpinalForgeViewer = /** @class */ (function () {
         });
     };
     SpinalForgeViewer.prototype.getAecModelData = function (aecPath) {
-        return axios_1["default"].get(aecPath).then(function (a) { return a.data; });
+        return axios_1["default"].get(aecPath).then(function (a) {
+            return a.data;
+        });
     };
     SpinalForgeViewer.prototype.get1stGlobalOffset = function () {
         var _a;
         if (!this.globalOffset) {
-            this.globalOffset = (_a = this.viewerManager.viewer.model) === null || _a === void 0 ? void 0 : _a.getData().globalOffset;
+            this.globalOffset =
+                (_a = this.viewerManager.viewer.model) === null || _a === void 0 ? void 0 : _a.getData().globalOffset;
         }
         return this.globalOffset;
     };
@@ -229,9 +241,12 @@ var SpinalForgeViewer = /** @class */ (function () {
                         aecModelData = _a.sent();
                         if (aecModelData) {
                             tf = aecModelData && aecModelData.refPointTransformation;
-                            refPoint = tf ? { x: tf[9], y: tf[10], z: 0 } : { x: 0, y: 0, z: 0 };
+                            refPoint = tf
+                                ? { x: tf[9], y: tf[10], z: 0 }
+                                : { x: 0, y: 0, z: 0 };
                             MaxDistSqr = 4.0e6;
-                            distSqr = globalOffset && THREE.Vector3.prototype.distanceToSquared.call(refPoint, globalOffset);
+                            distSqr = globalOffset &&
+                                THREE.Vector3.prototype.distanceToSquared.call(refPoint, globalOffset);
                             if (!globalOffset || distSqr > MaxDistSqr) {
                                 // @ts-ignore
                                 return [2 /*return*/, new THREE.Vector3().copy(refPoint)];
@@ -242,7 +257,6 @@ var SpinalForgeViewer = /** @class */ (function () {
             });
         });
     };
-    ;
     SpinalForgeViewer.prototype.getOption = function (options, svfVersionFile) {
         for (var i = 0; i < options.length; i++) {
             if (options[i].urn.get().includes(svfVersionFile.path)) {
@@ -255,7 +269,6 @@ var SpinalForgeViewer = /** @class */ (function () {
             modelNameOverride: svfVersionFile.name
         };
     };
-    ;
     SpinalForgeViewer.prototype.addDbIdToOption = function (option) {
         if (option.hasOwnProperty('dbIds') && option.dbIds.length > 0) {
             option.ids = option.dbIds;
@@ -273,10 +286,11 @@ var SpinalForgeViewer = /** @class */ (function () {
                     case 1:
                         svfVersionFile = _b.sent();
                         option = null;
-                        if (!(typeof scene.sceneAlignMethod === "undefined")) return [3 /*break*/, 2];
+                        if (!(typeof scene.sceneAlignMethod === 'undefined')) return [3 /*break*/, 2];
                         // old scene handle
                         option = this.getOption(options, svfVersionFile);
-                        if (option.loadOption && option.loadOption.hasOwnProperty('globalOffset')) {
+                        if (option.loadOption &&
+                            option.loadOption.hasOwnProperty('globalOffset')) {
                             if (!this.globalOffset)
                                 this.globalOffset = option.loadOption.globalOffset;
                             option.globalOffset = this.globalOffset;
@@ -288,8 +302,8 @@ var SpinalForgeViewer = /** @class */ (function () {
                         option.globalOffset = this.get1stGlobalOffset();
                         return [3 /*break*/, 5];
                     case 3:
-                        if (!(scene.sceneAlignMethod.get() === SceneAlignMethod_1.SceneAlignMethod.ShareCoordinates
-                            && svfVersionFile.aecPath)) return [3 /*break*/, 5];
+                        if (!(scene.sceneAlignMethod.get() === SceneAlignMethod_1.SceneAlignMethod.ShareCoordinates &&
+                            svfVersionFile.aecPath)) return [3 /*break*/, 5];
                         option.applyRefPoint = true;
                         _a = option;
                         return [4 /*yield*/, this.addOffsetFromAEC(svfVersionFile.aecPath)];
@@ -352,8 +366,10 @@ var SpinalForgeViewer = /** @class */ (function () {
                         return [4 /*yield*/, SceneHelper_1.SceneHelper.getBimFilesFromScene(nodeId)];
                     case 2:
                         children = _a.sent();
-                        option_1 = typeof node.options !== "undefined" ? node.options : [];
-                        data = children.map(function (child) { return { child: child, scene: scene_1, option: option_1 }; });
+                        option_1 = typeof node.options !== 'undefined' ? node.options : [];
+                        data = children.map(function (child) {
+                            return { child: child, scene: scene_1, option: option_1 };
+                        });
                         return [2 /*return*/, this.load1stThenAll(data, function (_a) {
                                 var child = _a.child, scene = _a.scene, option = _a.option;
                                 return _this.loadBimFile(child, scene, option);
@@ -414,7 +430,7 @@ var SpinalForgeViewer = /** @class */ (function () {
                         return [4 /*yield*/, this.bimObjectService._addModel(bimFile.id.get(), model, svfVersionFile.name)];
                     case 3:
                         _a.sent();
-                        return [2 /*return*/, ({ model: model })];
+                        return [2 /*return*/, { model: model }];
                 }
             });
         });
@@ -433,7 +449,7 @@ var SpinalForgeViewer = /** @class */ (function () {
             var dbid = ids[i];
             //from dbid to node, to fragid
             var it = model.getData().instanceTree;
-            it.enumNodeFragments(dbid, (function (fragId) {
+            it.enumNodeFragments(dbid, function (fragId) {
                 var renderProxy = this.viewerManager.viewer.impl.getRenderProxy(model, fragId);
                 // @ts-ignore
                 renderProxy.meshProxy = new THREE.Mesh(renderProxy.geometry, material);
@@ -443,7 +459,7 @@ var SpinalForgeViewer = /** @class */ (function () {
                 renderProxy.meshProxy.frustumCulled = false;
                 this.viewerManager.viewer.impl.addOverlay(this.overlayName, renderProxy.meshProxy);
                 this.viewerManager.viewer.impl.invalidate(true);
-            }).bind(this), false);
+            }.bind(this), false);
         }
     };
     SpinalForgeViewer.prototype.setColorMaterial = function (aggregateSelection, color) {

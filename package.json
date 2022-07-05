@@ -1,6 +1,6 @@
 {
   "name": "spinal-env-viewer-plugin-forge",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -9,16 +9,12 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "types": "declaration/index.d.ts",
   "devDependencies": {
-    "@types/forge-viewer": "^6.6.1",
-    "@types/three": "^0.103.2",
-    "@typescript-eslint/eslint-plugin": "^2.17.0",
-    "@typescript-eslint/parser": "^2.17.0",
-    "eslint": "^6.8.0",
-    "eslint-plugin-react": "^7.18.0",
-    "typedoc": "^0.14.2",
-    "typedoc-plugin-markdown": "^2.0.9",
-    "typescript": "^3.5.3"
+    "@types/forge-viewer": "^7.69.1",
+    "typedoc": "^0.23.5",
+    "typedoc-plugin-markdown": "^3.13.2",
+    "typescript": "^4.7.4"
   },
   "dependencies": {
     "spinal-env-viewer-graph-service": "git+https://github.com/spinalcom/Spinal-Graph-Service.git"

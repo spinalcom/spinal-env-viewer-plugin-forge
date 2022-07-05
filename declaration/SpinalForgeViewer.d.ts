@@ -1,10 +1,11 @@
 /// <reference types="forge-viewer" />
-import { SpinalNodePointer } from "spinal-env-viewer-graph-service";
-import { BimObjectService } from "./BimObjectService";
+/// <reference types="forge-viewer" />
+import { SpinalNodePointer } from 'spinal-env-viewer-graph-service';
+import { BimObjectService } from './BimObjectService';
 import Model = Autodesk.Viewing.Model;
 import { BimFileNodeRef, SceneNodeRef, SceneOptions, SceneOptionsGet, BimObjectRef } from './interfaces/interfaces';
-import { IAecData } from "./interfaces/IAecData";
-import { ISVFFile } from "./interfaces/ISVFFile";
+import { IAecData } from './interfaces/IAecData';
+import { ISVFFile } from './interfaces/ISVFFile';
 export declare class SpinalForgeViewer {
     currentSceneId: string;
     initialized: Promise<boolean>;
