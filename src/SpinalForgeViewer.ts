@@ -387,7 +387,8 @@ export class SpinalForgeViewer {
       bimFile.name.get()
     );
     const path = this.getNormalisePath(svfVersionFile.path);
-    const model = await this.viewerManager.loadModel(path, {});
+    const is1stModelLoaded = !spinal.SpinalForgeViewer.viewerManager.viewer.model
+    const model = await this.viewerManager.loadModel(path, {}, is1stModelLoaded);
     await this.bimObjectService._addModel(
       bimFile.id.get(),
       model,

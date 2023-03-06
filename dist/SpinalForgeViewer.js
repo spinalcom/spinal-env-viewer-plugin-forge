@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -417,14 +417,15 @@ var SpinalForgeViewer = /** @class */ (function () {
     };
     SpinalForgeViewer.prototype.loadModelFromBimFile = function (bimFile) {
         return __awaiter(this, void 0, void 0, function () {
-            var svfVersionFile, path, model;
+            var svfVersionFile, path, is1stModelLoaded, model;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getSVF(bimFile.element, bimFile.id.get(), bimFile.name.get())];
                     case 1:
                         svfVersionFile = _a.sent();
                         path = this.getNormalisePath(svfVersionFile.path);
-                        return [4 /*yield*/, this.viewerManager.loadModel(path, {})];
+                        is1stModelLoaded = !spinal.SpinalForgeViewer.viewerManager.viewer.model;
+                        return [4 /*yield*/, this.viewerManager.loadModel(path, {}, is1stModelLoaded)];
                     case 2:
                         model = _a.sent();
                         return [4 /*yield*/, this.bimObjectService._addModel(bimFile.id.get(), model, svfVersionFile.name)];
