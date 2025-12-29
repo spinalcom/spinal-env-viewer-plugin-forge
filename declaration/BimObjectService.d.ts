@@ -1,4 +1,3 @@
-/// <reference types="forge-viewer" />
 import { SpinalNodeRef } from "spinal-env-viewer-graph-service";
 import Model = Autodesk.Viewing.Model;
 import { BimObjectRef, SceneNodeRef } from './interfaces/interfaces';

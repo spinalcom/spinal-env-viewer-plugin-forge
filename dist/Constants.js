@@ -22,10 +22,10 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.REFERENCE_OBJECT_RELATION_TYPE = exports.BIM_OBJECT_RELATION_TYPE = exports.BIM_NODE_RELATION_TYPE = exports.BIM_OBJECT_VERSION_RELATION_TYPE = exports.REFERENCE_OBJECT_RELATION_NAME = exports.BIM_OBJECT_VERSION_RELATION_NAME = exports.BIM_OBJECT_RELATION_NAME = exports.BIM_NODE_RELATION_NAME = exports.BIM_CONTEXT_RELATION_TYPE = exports.BIM_CONTEXT_RELATION_NAME = exports.BIM_OBJECT_TYPE = exports.PART_RELATION_TYPE = exports.SCENE_RELATION_TYPE = exports.PART_RELATION_NAME = exports.SCENE_TYPE = exports.SCENE_RELATION_NAME = void 0;
-var spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
-var constants_js_1 = require("spinal-env-viewer-context-geographic-service/build/constants.js");
+const spinal_env_viewer_graph_service_1 = require("spinal-env-viewer-graph-service");
+const constants_js_1 = require("spinal-env-viewer-context-geographic-service/build/constants.js");
 exports.SCENE_RELATION_NAME = 'hasScene';
 exports.SCENE_TYPE = "scene";
 exports.PART_RELATION_NAME = 'hasParts';

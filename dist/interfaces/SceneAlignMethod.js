@@ -22,11 +22,11 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.SceneAlignMethod = void 0;
 var SceneAlignMethod;
 (function (SceneAlignMethod) {
     SceneAlignMethod[SceneAlignMethod["CenterToCenter"] = 0] = "CenterToCenter";
     SceneAlignMethod[SceneAlignMethod["OriginToOrigin"] = 1] = "OriginToOrigin";
     SceneAlignMethod[SceneAlignMethod["ShareCoordinates"] = 2] = "ShareCoordinates";
-})(SceneAlignMethod = exports.SceneAlignMethod || (exports.SceneAlignMethod = {}));
+})(SceneAlignMethod || (exports.SceneAlignMethod = SceneAlignMethod = {}));

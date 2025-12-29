@@ -22,11 +22,11 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.SpinalForgeViewer = void 0;
-var SpinalForgeViewer_1 = require("./SpinalForgeViewer");
-exports.SpinalForgeViewer = SpinalForgeViewer_1.SpinalForgeViewer;
-var g_win = typeof window === "undefined" ? global : window;
+const SpinalForgeViewer_1 = require("./SpinalForgeViewer");
+Object.defineProperty(exports, "SpinalForgeViewer", { enumerable: true, get: function () { return SpinalForgeViewer_1.SpinalForgeViewer; } });
+const g_win = typeof window === "undefined" ? global : window;
 if (typeof g_win.spinal === "undefined") {
     g_win.spinal = {};
 }

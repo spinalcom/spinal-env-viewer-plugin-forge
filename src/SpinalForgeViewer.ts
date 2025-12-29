@@ -214,11 +214,7 @@ export class SpinalForgeViewer {
       const refPoint = tf
         ? { x: tf[9], y: tf[10], z: 0 }
         : { x: 0, y: 0, z: 0 };
-      const MaxDistSqr = 4.0e6;
-      const distSqr =
-        globalOffset &&
-        THREE.Vector3.prototype.distanceToSquared.call(refPoint, globalOffset);
-      if (!globalOffset || distSqr > MaxDistSqr) {
+      if (!globalOffset) {
         // @ts-ignore
         return new THREE.Vector3().copy(refPoint);
       }
@@ -387,8 +383,13 @@ export class SpinalForgeViewer {
       bimFile.name.get()
     );
     const path = this.getNormalisePath(svfVersionFile.path);
-    const is1stModelLoaded = !spinal.SpinalForgeViewer.viewerManager.viewer.model
-    const model = await this.viewerManager.loadModel(path, {}, is1stModelLoaded);
+    const is1stModelLoaded =
+      !spinal.SpinalForgeViewer.viewerManager.viewer.model;
+    const model = await this.viewerManager.loadModel(
+      path,
+      {},
+      is1stModelLoaded
+    );
     await this.bimObjectService._addModel(
       bimFile.id.get(),
       model,

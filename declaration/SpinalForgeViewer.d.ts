@@ -1,5 +1,3 @@
-/// <reference types="forge-viewer" />
-/// <reference types="forge-viewer" />
 import { SpinalNodePointer } from 'spinal-env-viewer-graph-service';
 import { BimObjectService } from './BimObjectService';
 import Model = Autodesk.Viewing.Model;

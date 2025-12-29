@@ -1,8 +1,8 @@
 "use strict";
-exports.__esModule = true;
-exports.loadModelPtr = void 0;
-var spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
-var mapModelDictionary = new Map();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.loadModelPtr = loadModelPtr;
+const spinal_core_connectorjs_type_1 = require("spinal-core-connectorjs_type");
+const mapModelDictionary = new Map();
 function loadModelPtr(model) {
     if (model instanceof spinal_core_connectorjs_type_1.File) {
         return loadModelPtr(model._ptr);
@@ -20,14 +20,14 @@ function loadModelPtr(model) {
         return mapModelDictionary.get(model.data.value);
     }
     if (typeof spinal_core_connectorjs_type_1.FileSystem._objects[model.data.value] !== 'undefined') {
-        var promise_1 = Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[model.data.value]);
-        mapModelDictionary.set(model.data.value, promise_1);
-        return promise_1;
+        const promise = Promise.resolve(spinal_core_connectorjs_type_1.FileSystem._objects[model.data.value]);
+        mapModelDictionary.set(model.data.value, promise);
+        return promise;
     }
-    var promise = new Promise(function (resolve, reject) {
-        model.load(function (m) {
+    const promise = new Promise((resolve, reject) => {
+        model.load(m => {
             if (!m) {
-                mapModelDictionary["delete"](model.data.value);
+                mapModelDictionary.delete(model.data.value);
                 reject(new Error('Error in load Ptr'));
             }
             else {
@@ -38,4 +38,3 @@ function loadModelPtr(model) {
     mapModelDictionary.set(model.data.value, promise);
     return promise;
 }
-exports.loadModelPtr = loadModelPtr;

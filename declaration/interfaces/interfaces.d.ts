@@ -1,4 +1,3 @@
-/// <reference types="forge-viewer" />
 import { SpinalNodeRef } from "spinal-env-viewer-graph-service";
 export interface BimFileNodeRef extends SpinalNodeRef {
     type: spinal.Str;

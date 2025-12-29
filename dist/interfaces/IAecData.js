@@ -22,4 +22,4 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
